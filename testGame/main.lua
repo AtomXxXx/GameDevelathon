@@ -18,7 +18,7 @@ hud.x = -display.contentWidth / 2
 hud.y = -display.contentHeight / 2
 container:insert(hud)
 
-local numLanes = 7
+local numLanes = 5
 local laneWidth = display.contentWidth / numLanes
 local laneMiddleX = laneWidth / 2
 local currentLane = 0
@@ -106,16 +106,25 @@ physics.start()
 physics.setGravity(0, 0)
 
 local function onCollisionWithShip(self, event)
-    if (event.phase == "began" and event.other.name == "GoodBall") then
-        score = score + 1
+    if (event.phase == "began") then
+        if(event.other.name == "GoodBall") then
+            score = score + 1
+            event.other:removeSelf()
+        elseif(event.other.name == "BadBall") then
+            score = score - 5
+            event.other:removeSelf()
+        end
         scoreText.text = score
-        event.other:removeSelf()
     end
     print(score)
 end
 
 local function onCollisionAtBottomOfScreen(self, event)
     if(event.phase == "began" and self.name == "BottomOfScreen") then
+        if(event.other.name == "GoodBall") then
+            score = score - 1
+            scoreText.text = score
+        end
         event.other:removeSelf()
     end
 end
@@ -134,12 +143,17 @@ local function createBall()
     local ballRadius = laneWidth / 4
     local ballY = -ballRadius
     local ball = display.newCircle(ballLane * laneWidth + laneMiddleX, ballY, ballRadius)
-    ball.name = "GoodBall"
-    ball:setFillColor(0,0.8, 0.2)
+    if (math.random(100) < 75) then
+        ball.name = "GoodBall"
+        ball:setFillColor(0,0.8, 0.2)
+    else
+        ball.name = "BadBall"
+        ball:setFillColor(0.8,0.2, 0.2)
+    end
     group:insert(ball)
 
     physics.addBody(ball, "dynamic", {radius = ballRadius})
     ball:setLinearVelocity(0, ballVelocityY)
 end
 
-local tm = timer.performWithDelay(1500, createBall, 0)
+local tm = timer.performWithDelay(1000, createBall, 0)
