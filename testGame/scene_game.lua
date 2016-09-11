@@ -27,7 +27,7 @@ local score = 0
 local scoreText = display.newText({text = score, font = native.systemFontBold, fontSize = 34})
 scoreText.anchorX = 0
 scoreText.anchorY = 0
-scoreText:setFillColor(0,0,0)
+scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
 -- CREATING ALL THE OBJECTS ON SCREEN
@@ -49,10 +49,11 @@ rightTapObject:setFillColor(0, 1, 0)
 rightTapObject.alpha = 0.1
 group:insert(rightTapObject)
 
-local background = display.newRect(0,0,display.contentWidth,display.contentHeight)
+--local background = display.newRect(0,0,display.contentWidth,display.contentHeight)
+local background = display.newImage("background.png")
 background.anchorX = 0
 background.anchorY = 0
-background:setFillColor(1,1,0)
+--background:setFillColor(1,1,0)
 group:insert(background)
 
 -- Creating the lane rectangles depending on the number of lanes
@@ -153,6 +154,6 @@ local function createBall()
     ball:setLinearVelocity(0, ballVelocityY)
 end
 
-local tm = timer.performWithDelay(750, createBall, 0)
+local tm = timer.performWithDelay(900, createBall, 0)
 
 return scene
