@@ -93,7 +93,7 @@ end
 leftTapObject:addEventListener( "tap", leftTap )
 rightTapObject:addEventListener("tap", rightTap)
 
-local bottomOfScreen = display.newRect(0, display.contentHeight + 100, display.contentWidth, 50)
+local bottomOfScreen = display.newRect(0, display.contentHeight + laneWidth / 2, display.contentWidth, 50)
 bottomOfScreen.anchorX = 0
 bottomOfScreen.anchorY = 0
 bottomOfScreen.name = "BottomOfScreen"
