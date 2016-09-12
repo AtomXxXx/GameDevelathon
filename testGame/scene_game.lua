@@ -18,7 +18,7 @@ container:insert(hud)
 local numLanes = 5
 local laneWidth = display.contentWidth / numLanes
 local laneMiddleX = laneWidth / 2
-local currentLane = 0
+local currentLane = 2
 local lanes = {}
 local score = 0
 
@@ -68,11 +68,35 @@ end
 --local ship = display.newRect(0, 0, laneWidth / 2, 50)
 --ship:setFillColor(0, 0.8, 0.2)
 local ship = display.newImage("images/ship.png")
-ship.anchorY = 0 
 ship:translate(0,display.contentHeight - 100)
 
-ship.x = laneWidth * currentLane + laneMiddleX
+--ship.x = laneWidth * currentLane + laneMiddleX
+ship.x = display.contentWidth / 2
 group:insert(ship)
+
+local function onTilt(event)
+    local speed = event.xRaw / 0.3
+
+    if(speed > 1) then
+        speed = 1
+    elseif(speed < -1) then
+        speed = -1
+    end
+
+    ship:setLinearVelocity( speed * 275, 0 )
+    if (ship.x < ship.width / 2) then
+        ship.x = ship.width / 2
+        ship:setLinearVelocity(0, 0 )
+    elseif (ship.x > display.contentWidth - ship.width / 2) then
+        ship.x = display.contentWidth - ship.width / 2
+        ship:setLinearVelocity(0, 0 )
+    elseif (ship.x == ship.width / 2 and speed < 0) then
+        ship:setLinearVelocity(0, 0)
+    elseif(ship.x == display.contentWidth - ship.width / 2 and speed > 0) then
+        ship:setLinearVelocity(0, 0)
+    end
+end
+Runtime:addEventListener( "accelerometer", onTilt )
 
 local function leftTap( event )
     currentLane = currentLane - 1
@@ -128,7 +152,7 @@ local function onCollisionAtBottomOfScreen(self, event)
     end
 end
 
-physics.addBody(ship, "static")
+physics.addBody(ship, "kinematic")
 ship.collision = onCollisionWithShip
 ship:addEventListener("collision")
 
