@@ -23,7 +23,9 @@ function scene:create( event )
         background.x = display.contentCenterX
         background.y = display.contentCenterY  
 
-    
+    local backgroundMusic = audio.loadStream( "back.mpeg" )
+    local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
+
 
     local logo = display.newImageRect(sceneGroup, "images/logo.png", 300, 150) -- create the logo image object
         logo.x = display.contentCenterX

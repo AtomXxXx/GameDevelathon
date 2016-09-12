@@ -65,8 +65,9 @@ for i=0, numLanes-2 do
     group:insert(lanes[i])
 end
 
-local ship = display.newRect(0, 0, laneWidth / 2, 50)
-ship:setFillColor(0, 0.8, 0.2)
+--local ship = display.newRect(0, 0, laneWidth / 2, 50)
+--ship:setFillColor(0, 0.8, 0.2)
+local ship = display.newImage("images/ship.png")
 ship.anchorY = 0 
 ship:translate(0,display.contentHeight - 100)
 
