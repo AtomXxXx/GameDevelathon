@@ -32,7 +32,7 @@ function scene:create( event )
 	local function handleSettingsButtonEvent( event )
 
     if ( "ended" == event.phase ) then
-        composer.gotoScene("gamesettings", { effect = "crossFade", time = 333 })
+        composer.gotoScene("game_settings", { effect = "crossFade", time = 333 })
     end
 end
 
