@@ -1,7 +1,9 @@
 local composer = require( "composer" )
 local scene = composer.newScene()
 local widget = require( "widget" )
-local myData = require( "mydata" )
+local json = require("json")
+
+local settings = {musicOn = true, soundOn = true, accelerometerOn = true}
 
 -- Function to handle button events
 local function handleButtonEvent( event )
@@ -14,7 +16,14 @@ function scene:create( event )
     local sceneGroup = self.view
 
     params = event.params
-        
+    
+    local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+    local file, errorstring = io.open(path, "r")
+    local string = file:read("*a")
+    settings = json.decode(string)
+    file:close()
+    file = nil
+
     --
     -- setup a page background, really not that important though composer
     -- crashes out if there isn't a display object in the view.
@@ -29,13 +38,17 @@ function scene:create( event )
     soundLabel.y = 130
     soundLabel:setFillColor( 0 )
     sceneGroup:insert( soundLabel )
+
+    local function onSoundSwitchPress()
+        settings.soundOn = not settings.soundOn
+    end
 	
     local soundOnOffSwitch = widget.newSwitch({
         width = 210,
         height = 90,
 		defaultFile = "images/on.png", -- the image to be used in the normal state
         overFile = "images/off.png", -- the image to be used in the pressed state
-		initialSwitchState = myData.settings.soundOn,
+		initialSwitchState = settings.soundOn,
         onPress = onSoundSwitchPress
     })
     soundOnOffSwitch.x = display.contentCenterX + 100
@@ -47,19 +60,25 @@ function scene:create( event )
     musicLabel.y = 180
     musicLabel:setFillColor( 0 )
     sceneGroup:insert( musicLabel )
-
+    
+    local function onMusicSwitchPress()
+        settings.musicOn = not settings.musicOn
+    end
     local musicOnOffSwitch = widget.newSwitch({
         width = 210,
         height = 90,
 		defaultFile = "images/on.png", -- the image to be used in the normal state
         overFile = "images/off.png", -- the image to be used in the pressed state
-		initialSwitchState = myData.settings.musicOn,
+		initialSwitchState = settings.musicOn,
         onPress = onMusicSwitchPress
     })
     musicOnOffSwitch.x = display.contentCenterX + 100
     musicOnOffSwitch.y = musicLabel.y
     sceneGroup:insert( musicOnOffSwitch )
 
+    local function onAccelSwitchPress()
+        settings.accelerometerOn = not settings.accelerometerOn
+    end
 
 	local accelLabel = display.newText("Accelerometer?", 100, 32, native.systemFont, 18 )
     accelLabel.x = display.contentCenterX - 75
@@ -72,7 +91,7 @@ function scene:create( event )
         height = 90,
 		defaultFile = "images/on.png", -- the image to be used in the normal state
         overFile = "images/off.png", -- the image to be used in the pressed state
-		initialSwitchState = myData.settings.accelerometerOn,
+		initialSwitchState = settings.accelerometerOn,
         onPress = onAccelSwitchPress
     })
     accelOnOffSwitch.x = display.contentCenterX + 100
@@ -106,13 +125,29 @@ function scene:hide( event )
     local sceneGroup = self.view
     
     if event.phase == "will" then
+        local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+        local string = json.encode(settings)
+        local file, errorstring = io.open(path, "w")
+        if (file == nil) then
+            print(errorstring)
+        end
+        file:write(string)
+        file:close()
+        file = nil
     end
-
 end
 
 function scene:destroy( event )
     local sceneGroup = self.view
-    
+    local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+    local string = json.encode(settings)
+    local file, errorstring = io.open(path, "w")
+    if (file == nil) then
+        print(errorstring)
+    end
+    file:write(string)
+    file:close()
+    file = nil
 end
 
 ---------------------------------------------------------------------------------

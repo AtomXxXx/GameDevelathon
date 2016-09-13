@@ -1,6 +1,7 @@
 local composer = require( "composer" )
 local scene = composer.newScene()
 local widget = require( "widget" )
+local json = require("json")
 
 -- -----------------------------------------------------------------------------------------------------------------
 -- All code outside of the listener functions will only be executed ONCE unless "composer.removeScene()" is called.
@@ -15,6 +16,27 @@ local widget = require( "widget" )
 function scene:create( event )
 
     local sceneGroup = self.view
+    local settings = {musicOn = true, soundOn = true, accelerometerOn = true}
+    
+    local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+    local file, errorstring = io.open(path, "r")
+    if (not file) then
+        settings = {musicOn = true, soundOn = true, accelerometerOn = true}
+        local string = json.encode(settings)
+        local file, errorstring = io.open(path, "w")
+        if (file == nil) then
+            print(errorstring)
+        end
+        file:write(string)
+        file:close()
+        file = nil
+    else
+        local string = file:read("*a")
+        settings = json.decode(string)
+        file:close()
+        file = nil
+    end
+
 
     -- Initialize the scene here.
     -- Example: add display objects to "sceneGroup", add touch listeners, etc.

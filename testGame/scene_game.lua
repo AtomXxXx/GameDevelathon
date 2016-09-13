@@ -1,8 +1,16 @@
 local composer = require( "composer" )
+local json = require("json")
 local scene = composer.newScene()
 
-local enableAccelerometer = false
-local enableMusic = true
+local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+local file, errorstring = io.open(path, "r")
+local string = file:read("*a")
+local settings = json.decode(string)
+file:close()
+file = nil
+
+local enableAccelerometer = settings.accelerometerOn
+local enableMusic = settings.musicOn
 
 container = display.newContainer(display.contentWidth, display.contentHeight)
 container.x = display.contentWidth / 2
