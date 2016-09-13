@@ -18,7 +18,7 @@ container:insert(hud)
 local numLanes = 5
 local laneWidth = display.contentWidth / numLanes
 local laneMiddleX = laneWidth / 2
-local currentLane = 0
+local currentLane = 2
 local lanes = {}
 local score = 0
 
@@ -31,8 +31,8 @@ scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
 -- CREATING ALL THE OBJECTS ON SCREEN
-local backgroundMusicGame = audio.loadStream( "ingame.mp3" )
-local backgroundMusicGame = audio.play( backgroundMusicGame, { channel=1, loops=-1} )
+local backgroundMusic = audio.loadStream( "back.mpeg" )
+local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
 
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
 local leftTapObject = display.newRect(0,0, display.contentWidth / 2, display.contentHeight)
@@ -50,7 +50,7 @@ rightTapObject.alpha = 0.1
 group:insert(rightTapObject)
 
 --local background = display.newRect(0,0,display.contentWidth,display.contentHeight)
-local background = display.newImage("images/background.png")
+local background = display.newImage("background.png")
 background.anchorX = 0
 background.anchorY = 0
 --background:setFillColor(1,1,0)
@@ -65,13 +65,38 @@ for i=0, numLanes-2 do
     group:insert(lanes[i])
 end
 
-local ship = display.newRect(0, 0, laneWidth / 2, 50)
-ship:setFillColor(0, 0.8, 0.2)
-ship.anchorY = 0 
+--local ship = display.newRect(0, 0, laneWidth / 2, 50)
+--ship:setFillColor(0, 0.8, 0.2)
+local ship = display.newImage("images/ship.png")
 ship:translate(0,display.contentHeight - 100)
 
-ship.x = laneWidth * currentLane + laneMiddleX
+--ship.x = laneWidth * currentLane + laneMiddleX
+ship.x = display.contentWidth / 2
 group:insert(ship)
+
+local function onTilt(event)
+    local speed = event.xRaw / 0.3
+
+    if(speed > 1) then
+        speed = 1
+    elseif(speed < -1) then
+        speed = -1
+    end
+
+    ship:setLinearVelocity( speed * 275, 0 )
+    if (ship.x < ship.width / 2) then
+        ship.x = ship.width / 2
+        ship:setLinearVelocity(0, 0 )
+    elseif (ship.x > display.contentWidth - ship.width / 2) then
+        ship.x = display.contentWidth - ship.width / 2
+        ship:setLinearVelocity(0, 0 )
+    elseif (ship.x == ship.width / 2 and speed < 0) then
+        ship:setLinearVelocity(0, 0)
+    elseif(ship.x == display.contentWidth - ship.width / 2 and speed > 0) then
+        ship:setLinearVelocity(0, 0)
+    end
+end
+Runtime:addEventListener( "accelerometer", onTilt )
 
 local function leftTap( event )
     currentLane = currentLane - 1
@@ -127,7 +152,7 @@ local function onCollisionAtBottomOfScreen(self, event)
     end
 end
 
-physics.addBody(ship, "static")
+physics.addBody(ship, "kinematic")
 ship.collision = onCollisionWithShip
 ship:addEventListener("collision")
 
@@ -154,6 +179,6 @@ local function createBall()
     ball:setLinearVelocity(0, ballVelocityY)
 end
 
-local tm = timer.performWithDelay(750, createBall, 0)
+local tm = timer.performWithDelay(900, createBall, 0)
 
 return scene
