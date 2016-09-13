@@ -31,7 +31,7 @@ scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
 -- CREATING ALL THE OBJECTS ON SCREEN
-local backgroundMusic = audio.loadStream( "back.mpeg" )
+local backgroundMusic = audio.loadStream( "ingame.mp3" )
 local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
 
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
