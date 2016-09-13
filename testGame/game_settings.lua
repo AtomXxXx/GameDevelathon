@@ -29,7 +29,7 @@ function scene:create( event )
     soundLabel.y = 130
     soundLabel:setFillColor( 0 )
     sceneGroup:insert( soundLabel )
-
+	
     local soundOnOffSwitch = widget.newSwitch({
         width = 210,
         height = 90,
@@ -59,6 +59,25 @@ function scene:create( event )
     musicOnOffSwitch.x = display.contentCenterX + 100
     musicOnOffSwitch.y = musicLabel.y
     sceneGroup:insert( musicOnOffSwitch )
+
+
+	local accelLabel = display.newText("Accelerometer?", 100, 32, native.systemFont, 18 )
+    accelLabel.x = display.contentCenterX - 75
+    accelLabel.y = 230
+    accelLabel:setFillColor( 0 )
+    sceneGroup:insert( accelLabel )
+
+	local accelOnOffSwitch = widget.newSwitch({
+        width = 210,
+        height = 90,
+		defaultFile = "images/on.png", -- the image to be used in the normal state
+        overFile = "images/off.png", -- the image to be used in the pressed state
+		initialSwitchState = myData.settings.accelerometerOn,
+        onPress = onAccelSwitchPress
+    })
+    accelOnOffSwitch.x = display.contentCenterX + 100
+    accelOnOffSwitch.y = accelLabel.y
+    sceneGroup:insert( accelOnOffSwitch )
 
     -- Create the widget
     local doneButton = widget.newButton({
