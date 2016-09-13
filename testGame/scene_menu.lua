@@ -15,7 +15,6 @@ local widget = require( "widget" )
 function scene:create( event )
 
     local sceneGroup = self.view
-    local lanes = {}
 
     -- Initialize the scene here.
     -- Example: add display objects to "sceneGroup", add touch listeners, etc.
@@ -23,19 +22,39 @@ function scene:create( event )
         background.x = display.contentCenterX
         background.y = display.contentCenterY  
 
-    local backgroundMusic = audio.loadStream( "back.mpeg" )
-    local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
-
+    
 
     local logo = display.newImageRect(sceneGroup, "images/logo.png", 300, 150) -- create the logo image object
         logo.x = display.contentCenterX
         logo.y = 75
+
+	local function handleSettingsButtonEvent( event )
+
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("game_settings", { effect = "crossFade", time = 333 })
+    end
+end
+
    
     local function handleButtonEvent( event ) -- create a function that responds to the button press of start playing
         if ( "ended" == event.phase ) then -- when the player lifts his or her finger from the button, that is known as the ended phase
             composer.gotoScene("scene_game", "slideLeft") -- move the player to the game scene
         end
     end
+	local settingsButton = widget.newButton({
+        width = 210,
+        height = 90,
+		defaultFile = "images/btn-blank.png", -- the image to be used in the normal state
+        overFile = "images/btn-blank-over.png", -- the image to be used in the pressed state
+		label = "Settings", -- the text to display on the button
+        font = system.defaultFontBold, -- the font name to be used
+        fontSize = 25, -- the size of the font
+        labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0, 0.5 } }, -- the color of the label and the color when pressed
+        onEvent = handleSettingsButtonEvent
+    })
+    settingsButton.x = display.contentCenterX
+    settingsButton.y = display.contentCenterY +100
+    sceneGroup:insert( settingsButton )
 
     local btn_startPlaying = widget.newButton {
         width = 220, -- this defines the width of the button
@@ -53,6 +72,7 @@ function scene:create( event )
     sceneGroup:insert(btn_startPlaying) -- insert button into sceneGroup for scene management
 
 end
+
 
 
 -- "scene:show()"
