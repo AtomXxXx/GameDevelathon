@@ -15,7 +15,6 @@ local widget = require( "widget" )
 function scene:create( event )
 
     local sceneGroup = self.view
-    local lanes = {}
 
     -- Initialize the scene here.
     -- Example: add display objects to "sceneGroup", add touch listeners, etc.
