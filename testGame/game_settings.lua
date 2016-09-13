@@ -19,15 +19,12 @@ function scene:create( event )
     -- setup a page background, really not that important though composer
     -- crashes out if there isn't a display object in the view.
     --
-    local background = display.newImage("images/background.png")
-	background.anchorX = 0
-	background.anchorY = 0
-	--background:setFillColor(1,1,0)
-	sceneGroup:insert(background)
-
-    
-
-    local soundLabel = display.newText("Sound Effects", 100, 32, native.systemFont, 18 )
+    local background = display.newRect( 0, 0, 600, 400 )
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+    sceneGroup:insert(background)
+   widget.setTheme( "widget_theme_android_holo_dark" ) 
+   local soundLabel = display.newText("Sound Effects", 100, 32, native.systemFont, 18 )
     soundLabel.x = display.contentCenterX - 75
     soundLabel.y = 130
     soundLabel:setFillColor( 0 )
