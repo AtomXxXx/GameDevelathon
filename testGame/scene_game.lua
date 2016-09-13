@@ -1,6 +1,9 @@
 local composer = require( "composer" )
 local scene = composer.newScene()
 
+local enableAccelerometer = false
+local enableMusic = true
+
 container = display.newContainer(display.contentWidth, display.contentHeight)
 container.x = display.contentWidth / 2
 container.y = display.contentHeight / 2
@@ -15,6 +18,7 @@ hud.x = -display.contentWidth / 2
 hud.y = -display.contentHeight / 2
 container:insert(hud)
 
+local shipMaxSpeed = 275
 local numLanes = 5
 local laneWidth = display.contentWidth / numLanes
 local laneMiddleX = laneWidth / 2
@@ -31,8 +35,10 @@ scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
 -- CREATING ALL THE OBJECTS ON SCREEN
-local backgroundMusic = audio.loadStream( "back.mpeg" )
-local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
+if (enableMusic) then
+    local backgroundMusic = audio.loadStream( "ingame.mp3" )
+    local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
+end
 
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
 local leftTapObject = display.newRect(0,0, display.contentWidth / 2, display.contentHeight)
@@ -40,6 +46,7 @@ leftTapObject.anchorX = 0
 leftTapObject.anchorY = 0
 leftTapObject:setFillColor(1, 0, 0)
 leftTapObject.alpha = 0.1
+leftTapObject.name = "LeftTapObject"
 group:insert(leftTapObject)
 -- When tapped, the player character will change lanes to the right
 local rightTapObject = display.newRect(display.contentWidth / 2,0, display.contentWidth / 2, display.contentHeight)
@@ -47,6 +54,7 @@ rightTapObject.anchorX = 0
 rightTapObject.anchorY = 0
 rightTapObject:setFillColor(0, 1, 0)
 rightTapObject.alpha = 0.1
+rightTapObject.name = "RightTapObject"
 group:insert(rightTapObject)
 
 --local background = display.newRect(0,0,display.contentWidth,display.contentHeight)
@@ -57,13 +65,13 @@ background.anchorY = 0
 group:insert(background)
 
 -- Creating the lane rectangles depending on the number of lanes
-for i=0, numLanes-2 do
+--[[for i=0, numLanes-2 do
     lanes[i] = display.newRect(laneWidth * (i+1) ,0, 5, display.contentHeight)
     --lanes[i].anchorX = 0
     lanes[i].anchorY = 0
     lanes[i]:setFillColor(0,0,1)
     group:insert(lanes[i])
-end
+end]]
 
 --local ship = display.newRect(0, 0, laneWidth / 2, 50)
 --ship:setFillColor(0, 0.8, 0.2)
@@ -74,16 +82,7 @@ ship:translate(0,display.contentHeight - 100)
 ship.x = display.contentWidth / 2
 group:insert(ship)
 
-local function onTilt(event)
-    local speed = event.xRaw / 0.3
-
-    if(speed > 1) then
-        speed = 1
-    elseif(speed < -1) then
-        speed = -1
-    end
-
-    ship:setLinearVelocity( speed * 275, 0 )
+local function boundShipToScreen(speed)
     if (ship.x < ship.width / 2) then
         ship.x = ship.width / 2
         ship:setLinearVelocity(0, 0 )
@@ -96,9 +95,24 @@ local function onTilt(event)
         ship:setLinearVelocity(0, 0)
     end
 end
-Runtime:addEventListener( "accelerometer", onTilt )
 
-local function leftTap( event )
+local function onTilt(event)
+    local speed = event.xRaw / 0.3
+
+    if(speed > 1) then
+        speed = 1
+    elseif(speed < -1) then
+        speed = -1
+    end
+
+    ship:setLinearVelocity( speed * shipMaxSpeed, 0 )
+    boundShipToScreen(speed)
+end
+if(enableAccelerometer) then
+    Runtime:addEventListener( "accelerometer", onTilt )
+end
+
+--[[local function leftTap( event )
     currentLane = currentLane - 1
     if(currentLane < 0) then
         currentLane = 0
@@ -113,9 +127,58 @@ local function rightTap( event )
     end
     ship.x = laneWidth * currentLane + laneMiddleX
     return true
+end]]
+local function moveShipLeft()
+    if (holding) then
+        ship:setLinearVelocity( -shipMaxSpeed, 0 )
+        boundShipToScreen(-shipMaxSpeed)
+    end
 end
-leftTapObject:addEventListener( "tap", leftTap )
-rightTapObject:addEventListener("tap", rightTap)
+local function moveShipRight()
+    if(holding) then
+        ship:setLinearVelocity( shipMaxSpeed, 0 )
+        boundShipToScreen(shipMaxSpeed)
+    end
+end
+
+local function touchHandler( event )
+    if (event.phase == "began") then
+
+        display.getCurrentStage():setFocus( event.target )
+        event.target.isFocus = true
+
+        if (event.target.name == "LeftTapObject") then
+            Runtime:addEventListener( "enterFrame", moveShipLeft )
+        elseif(event.target.name == "RightTapObject") then
+            Runtime:addEventListener( "enterFrame", moveShipRight )
+        end
+
+        holding = true
+
+    elseif (event.target.isFocus) then
+        if (event.phase == "moved") then
+        elseif (event.phase == "ended" or event.phase == "cancelled") then
+            holding = false
+            event.target.isFocus = false
+
+            if (event.target.name == "LeftTapObject") then
+                Runtime:removeEventListener( "enterFrame", moveShipLeft )
+                ship:setLinearVelocity(0, 0)
+            elseif(event.target.name == "RightTapObject") then
+                Runtime:removeEventListener( "enterFrame", moveShipRight )
+                ship:setLinearVelocity(0, 0)
+            end
+
+            display.getCurrentStage():setFocus( nil )
+        end
+    end
+end
+if ( enableAccelerometer == false) then
+    --leftTapObject:addEventListener( "tap", leftTap )
+    --rightTapObject:addEventListener("tap", rightTap)
+    leftTapObject:addEventListener("touch", touchHandler)
+    rightTapObject:addEventListener("touch", touchHandler)
+end
 
 local bottomOfScreen = display.newRect(0, display.contentHeight + laneWidth / 2, display.contentWidth, 50)
 bottomOfScreen.anchorX = 0
