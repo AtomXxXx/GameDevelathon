@@ -200,6 +200,21 @@ local physics = require("physics")
 physics.start()
 physics.setGravity(0, 0)
 
+
+local function fireBeam()
+
+	local newBeam = display.newImage("images/beam.png")
+	physics.addBody( newBeam, "dynamic", { isSensor=true } )
+	newBeam.x = ship.x
+	newBeam.y = ship.y
+	newBeam:toBack()
+
+	transition.to( newBeam, { y=-100, time=500,
+		onComplete = function() display.remove( newBeam ) end
+	} )
+end
+
+
 local function onCollisionWithShip(self, event)
     if (event.phase == "began") then
         if(event.other.name == "GoodBall") then
@@ -251,5 +266,21 @@ local function createBall()
 end
 
 local tm = timer.performWithDelay(900, createBall, 0)
+
+function scene:create( event )
+
+	local sceneGroup = self.view
+	ship:addEventListener( "tap", fireBeam )
+end
+
+
+
+
+-- -----------------------------------------------------------------------------------
+-- Scene event function listeners
+-- -----------------------------------------------------------------------------------
+scene:addEventListener( "create", scene )
+
+-- -----------------------------------------------------------------------------------
 
 return scene
