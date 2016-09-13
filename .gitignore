@@ -1,3 +1,4 @@
 testGame/images/ship2.png
 *.png
 testGame/Thumbs.db
+*.db
