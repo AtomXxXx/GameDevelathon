@@ -16,10 +16,31 @@ container = display.newContainer(display.contentWidth, display.contentHeight)
 container.x = display.contentWidth / 2
 container.y = display.contentHeight / 2
 
+background3 = display.newGroup()
+background3.x = -display.contentWidth / 2
+background3.y = -display.contentHeight / 2
+container:insert(background3)
+
+background2 = display.newGroup()
+background2.x = -display.contentWidth / 2
+background2.y = -display.contentHeight / 2
+container:insert(background2)
+
+background1 = display.newGroup()
+background1.x = -display.contentWidth / 2
+background1.y = -display.contentHeight / 2
+container:insert(background1)
+
+
 group = display.newGroup()
 group.x = -display.contentWidth / 2
 group.y = -display.contentHeight / 2
 container:insert(group)
+
+spaceDusts = display.newGroup()
+spaceDusts.x = -display.contentWidth / 2
+spaceDusts.y = -display.contentHeight / 2
+container:insert(spaceDusts)
 
 hud = display.newGroup()
 hud.x = -display.contentWidth / 2
@@ -48,29 +69,40 @@ if (enableMusic) then
     local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
 end
 
+local planet = display.newImage("images/Jupiter.png")
+planet.anchorX = 0
+planet.anchorY = 0
+planet.x = display.contentWidth / 2
+planet.y = -planet.height / 3
+planet.aplha = 0.2
+planet:scale(0.5, 0.5)
+background2:insert(planet)
+
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
 local leftTapObject = display.newRect(0,0, display.contentWidth / 2, display.contentHeight)
 leftTapObject.anchorX = 0
 leftTapObject.anchorY = 0
-leftTapObject:setFillColor(1, 0, 0)
-leftTapObject.alpha = 0.1
+leftTapObject:setFillColor(0, 0, 0)
+leftTapObject.alpha = 0
+leftTapObject.isHitTestable = true
 leftTapObject.name = "LeftTapObject"
 group:insert(leftTapObject)
 -- When tapped, the player character will change lanes to the right
 local rightTapObject = display.newRect(display.contentWidth / 2,0, display.contentWidth / 2, display.contentHeight)
 rightTapObject.anchorX = 0
 rightTapObject.anchorY = 0
-rightTapObject:setFillColor(0, 1, 0)
-rightTapObject.alpha = 0.1
+rightTapObject:setFillColor(0, 0, 0)
+rightTapObject.alpha = 0
+rightTapObject.isHitTestable = true
 rightTapObject.name = "RightTapObject"
 group:insert(rightTapObject)
 
 --local background = display.newRect(0,0,display.contentWidth,display.contentHeight)
-local background = display.newImage("background.png")
+--[[local background = display.newImage("background.png")
 background.anchorX = 0
 background.anchorY = 0
 --background:setFillColor(1,1,0)
-group:insert(background)
+group:insert(background)]]
 
 -- Creating the lane rectangles depending on the number of lanes
 --[[for i=0, numLanes-2 do
@@ -251,5 +283,42 @@ local function createBall()
 end
 
 local tm = timer.performWithDelay(900, createBall, 0)
+
+local function createSpaceDust()
+
+    local spaceDust = display.newRect(math.random(display.contentWidth), -20, 1.2, display.contentHeight / 6)
+    spaceDust.anchorY = 0
+    spaceDust.alpha = 0.3
+    spaceDusts:insert(spaceDust)
+
+    timer.performWithDelay(math.random(150), createSpaceDust)
+end
+
+createSpaceDust()
+
+local function moveObjectsInGroup(group, speed)
+    if(group.numChildren ~= 0) then
+        for i=1, group.numChildren do
+            group[i].y = group[i].y + speed
+        end
+
+        local j = 1
+        for i=1, spaceDusts.numChildren do
+            if(spaceDusts[j].y > display.contentHeight) then
+                spaceDusts[j]:removeSelf()
+                j = j - 1
+            end
+            j = j + 1
+        end
+    end
+end
+
+local function updateFrame()
+    local backgroundSpeed = 0.25
+    moveObjectsInGroup(spaceDusts, 75)
+    moveObjectsInGroup(background2, backgroundSpeed * 1.0)
+end
+
+Runtime:addEventListener("enterFrame", updateFrame)
 
 return scene
