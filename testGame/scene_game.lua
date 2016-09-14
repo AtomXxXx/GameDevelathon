@@ -360,9 +360,9 @@ local function moveObjectsInGroup(group, speed)
         end
 
         local j = 1
-        for i=1, spaceDusts.numChildren do
-            if(spaceDusts[j].y > display.contentHeight) then
-                spaceDusts[j]:removeSelf()
+        for i=1, group.numChildren do
+            if(group[j].y > display.contentHeight) then
+                group[j]:removeSelf()
                 j = j - 1
             end
             j = j + 1
