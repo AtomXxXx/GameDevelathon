@@ -16,6 +16,16 @@ container = display.newContainer(display.contentWidth, display.contentHeight)
 container.x = display.contentWidth / 2
 container.y = display.contentHeight / 2
 
+background5 = display.newGroup()
+background5.x = -display.contentWidth / 2
+background5.y = -display.contentHeight / 2
+container:insert(background5)
+
+background4 = display.newGroup()
+background4.x = -display.contentWidth / 2
+background4.y = -display.contentHeight / 2
+container:insert(background4)
+
 background3 = display.newGroup()
 background3.x = -display.contentWidth / 2
 background3.y = -display.contentHeight / 2
@@ -69,6 +79,12 @@ if (enableMusic) then
     local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
 end
 
+local starbg = display.newImage("images/starsbackground.png")
+starbg:scale(1.0, 1.2)
+starbg.anchorX = 0
+starbg.anchorY = 0
+background5:insert(starbg)
+
 local planet = display.newImage("images/Jupiter.png")
 planet.anchorX = 0
 planet.anchorY = 0
@@ -76,7 +92,7 @@ planet.x = display.contentWidth / 2
 planet.y = -planet.height / 3
 planet.aplha = 0.2
 planet:scale(0.5, 0.5)
-background2:insert(planet)
+background1:insert(planet)
 
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
 local leftTapObject = display.newRect(0,0, display.contentWidth / 2, display.contentHeight)
@@ -284,6 +300,47 @@ end
 
 local tm = timer.performWithDelay(900, createBall, 0)
 
+local function getRandomStar(scale)
+    local starnum = math.random(3)
+    local star
+    if (starnum == 1) then 
+        star = display.newImage("images/star1.png")
+        star:scale(0.1 * scale, 0.1 * scale)
+    elseif (starnum == 2) then
+        star = display.newImage("images/star2.png")
+        star:scale(0.05 * scale, 0.05 * scale)
+    elseif (starnum == 3) then
+        star = display.newImage("images/star3.png")
+        star:scale(0.15 * scale, 0.15 * scale)
+    end
+    return star
+end
+
+local function createStars(scale, group)
+    local star = getRandomStar(scale)
+    star.x = math.random(display.contentWidth)
+    star.y = -star.height / 2
+    group:insert(star)
+    timer.performWithDelay(math.random(5000), function() createStars(scale, group) end)
+end
+
+local function initStars(scale, group)
+    for i = 1, 10 do
+        local star = getRandomStar(scale)
+        star.x = math.random(display.contentWidth)
+        star.y = math.random(display.contentHeight)
+        group:insert(star)
+    end
+end
+
+initStars(1.0, background2)
+initStars(0.8, background3)
+initStars(0.6, background4)
+
+createStars(1.0, background2)
+createStars(0.8, background3)
+createStars(0.6, background4)
+
 local function createSpaceDust()
 
     local spaceDust = display.newRect(math.random(display.contentWidth), -20, 1.2, display.contentHeight / 6)
@@ -314,9 +371,12 @@ local function moveObjectsInGroup(group, speed)
 end
 
 local function updateFrame()
-    local backgroundSpeed = 0.25
+    local backgroundSpeed = 0.8
     moveObjectsInGroup(spaceDusts, 75)
-    moveObjectsInGroup(background2, backgroundSpeed * 1.0)
+    moveObjectsInGroup(background1, backgroundSpeed * 1.0)
+    moveObjectsInGroup(background2, backgroundSpeed * 0.7)
+    moveObjectsInGroup(background3, backgroundSpeed * 0.4)
+    moveObjectsInGroup(background4, backgroundSpeed * 0.1)
 end
 
 Runtime:addEventListener("enterFrame", updateFrame)
