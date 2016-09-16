@@ -41,6 +41,10 @@ background1.x = -display.contentWidth / 2
 background1.y = -display.contentHeight / 2
 container:insert(background1)
 
+enemyGroup = display.newGroup()
+enemyGroup.x = -display.contentWidth / 2
+enemyGroup.y = -display.contentHeight / 2
+container:insert(enemyGroup)
 
 group = display.newGroup()
 group.x = -display.contentWidth / 2
@@ -57,6 +61,9 @@ hud.x = -display.contentWidth / 2
 hud.y = -display.contentHeight / 2
 container:insert(hud)
 
+local planetNames = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Neptune", "Uranus", "Pluto"}
+local currentPlanet = 1
+local onPlanet = true
 local shipMaxSpeed = 275
 local numLanes = 5
 local laneWidth = display.contentWidth / numLanes
@@ -73,6 +80,17 @@ scoreText.anchorY = 0
 scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
+local countDownText = display.newText({text = "", font = native.systemFontBold, fontSize = 30})
+countDownText:setFillColor(1,1,1)
+countDownText.x = display.contentWidth / 2
+countDownText.y = display.contentHeight * 0.05
+
+local fireButton = display.newImage("images/fire.png")
+fireButton.alpha = 0.3
+fireButton.x = display.contentWidth - fireButton.width
+fireButton.y = display.contentCenterY +100
+hud:insert(fireButton)
+
 -- CREATING ALL THE OBJECTS ON SCREEN
 if (enableMusic) then
     local backgroundMusic = audio.loadStream( "ingame.mp3" )
@@ -85,13 +103,18 @@ starbg.anchorX = 0
 starbg.anchorY = 0
 background5:insert(starbg)
 
-local planet = display.newImage("images/Jupiter.png")
-planet.anchorX = 0
-planet.anchorY = 0
-planet.x = display.contentWidth / 2
-planet.y = -planet.height / 3
-planet.aplha = 0.2
-planet:scale(0.5, 0.5)
+--[[local function getPlanet()
+    local planet = display.newImage("images/Mercury.png")
+    planet.anchorX = 0
+    planet.anchorY = 0
+    planet.x = -planet.width / 6
+    planet.y = -planet.height / 3
+    planet.aplha = 0.8
+    planet:scale(0.4, 0.4)
+    return planet
+end]]
+local getPlanet = require("planets").getPlanet
+local planet = getPlanet({planetName = "Sun"})
 background1:insert(planet)
 
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
@@ -250,20 +273,37 @@ physics.setGravity(0, 0)
 
 local function onCollisionWithShip(self, event)
     if (event.phase == "began") then
-        if(event.other.name == "GoodBall") then
+        if(event.other.name == "GoodShip") then
             score = score + 1
             event.other:removeSelf()
-        elseif(event.other.name == "BadBall") then
+            scoreText.text = score
+        elseif(event.other.name == "BadShip") then
             score = score - 5
             event.other:removeSelf()
+            scoreText.text = score
         end
-        scoreText.text = score
     end
 end
 
+local function onCollision(event)
+    if(event.phase == "began") then
+        obj1 = event.object1
+        obj2 = event.object2
+
+        if ((obj1.name == "PlayerBeam" and obj2.name == "BadShip") or (obj2.name == "PlayerBeam" and obj1 == "BadShip")) then
+            obj1:removeSelf()
+            obj2:removeSelf()
+            score = score + 10
+            scoreText.text = score
+        end
+    end
+end
+
+Runtime:addEventListener("collision", onCollision)
+
 local function onCollisionAtBottomOfScreen(self, event)
     if(event.phase == "began" and self.name == "BottomOfScreen") then
-        if(event.other.name == "GoodBall") then
+        if(event.other.name == "GoodShip") then
             score = score - 1
             scoreText.text = score
         end
@@ -279,26 +319,43 @@ physics.addBody(bottomOfScreen, "static")
 bottomOfScreen.collision = onCollisionAtBottomOfScreen
 bottomOfScreen:addEventListener("collision")
 
-local function createBall()
-    local ballLane = math.random(5) -1
-    local ballVelocityY = 190
-    local ballRadius = laneWidth / 4
-    local ballY = -ballRadius
-    local ball = display.newCircle(ballLane * laneWidth + laneMiddleX, ballY, ballRadius)
-    if (math.random(100) < 75) then
-        ball.name = "GoodBall"
-        ball:setFillColor(0,0.8, 0.2)
+local function createEnemyShip()
+    local shipLane = math.random(5) -1
+    local shipVelocityY = 190
+    local shipRadius = laneWidth / 4
+    local shipY = -shipRadius
+    shipX = shipLane * laneWidth + laneMiddleX
+    local ship
+    if (math.random(100) < 0) then
+        ship = display.newImage("images/enemyship.png")
+        ship.name = "GoodShip"
+        group:insert(ship)
     else
-        ball.name = "BadBall"
-        ball:setFillColor(0.8,0.2, 0.2)
+        ship = display.newImage("images/enemyship2.png")
+        ship.name = "BadShip"
+        enemyGroup:insert(ship)
     end
-    group:insert(ball)
+    ship.x = shipX
 
-    physics.addBody(ball, "dynamic", {radius = ballRadius})
-    ball:setLinearVelocity(0, ballVelocityY)
+    physics.addBody(ship, "dynamic", {radius = shipRadius})
+    ship:setLinearVelocity(0, shipVelocityY)
 end
 
-local tm = timer.performWithDelay(900, createBall, 0)
+local function fireBeam(ship, y1, time1, beam, beamOrigin)
+    local newBeam = display.newImage(beam)
+    physics.addBody(newBeam, "dynamic", {isSensor = true})
+    newBeam.name = beamOrigin
+    newBeam.x = ship.x
+    newBeam.y = ship.y
+    newBeam:toBack()
+    group:insert(newBeam)
+
+    transition.to(newBeam, {y = y1, time = time1, onComplete = function() display.remove(newBeam) end})
+end
+
+fireButton:addEventListener("tap",function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
+
+local tm = timer.performWithDelay(1500, createEnemyShip, 0)
 
 local function getRandomStar(scale)
     local starnum = math.random(3)
@@ -351,6 +408,7 @@ local function createSpaceDust()
     timer.performWithDelay(math.random(150), createSpaceDust)
 end
 
+
 createSpaceDust()
 
 local function moveObjectsInGroup(group, speed)
@@ -370,10 +428,44 @@ local function moveObjectsInGroup(group, speed)
     end
 end
 
+local function countDownToPlanet(name, timeSec)
+    countDownText.text = name .. ": " .. timeSec
+    if(timeSec == 0) then
+        countDownText.text = ""
+    else
+        timer.performWithDelay(1000, function() countDownToPlanet(name, timeSec - 1) end)
+    end
+end
+
+local function spawnPlanet()
+    onPlanet = true
+    planet = getPlanet({planetName = planetNames[currentPlanet]})
+    background1:insert(planet)
+end
+
+local function onPlanetDone()
+    planet:removeSelf()
+    planet = nil
+    onPlanet = false
+    currentPlanet = currentPlanet + 1
+    if(currentPlanet < 11) then
+        timer.performWithDelay(10000, spawnPlanet)
+        countDownToPlanet(planetNames[currentPlanet], 10)
+    end
+end
+
+local function movePlanet(planet, speed)
+    planet.y = planet.y + speed
+    if(planet.y > display.contentHeight) then
+        onPlanetDone(planet)
+    end
+end
+
 local function updateFrame()
     local backgroundSpeed = 0.8
     moveObjectsInGroup(spaceDusts, 75)
-    moveObjectsInGroup(background1, backgroundSpeed * 1.0)
+    --moveObjectsInGroup(background1, backgroundSpeed * 1.0)
+    if(onPlanet) then movePlanet(planet, backgroundSpeed * 1.0) end
     moveObjectsInGroup(background2, backgroundSpeed * 0.7)
     moveObjectsInGroup(background3, backgroundSpeed * 0.4)
     moveObjectsInGroup(background4, backgroundSpeed * 0.1)
