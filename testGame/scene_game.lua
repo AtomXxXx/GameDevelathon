@@ -62,8 +62,9 @@ hud.y = -display.contentHeight / 2
 container:insert(hud)
 
 local planetNames = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Neptune", "Uranus", "Pluto"}
-local currentPlanet = 1
-local onPlanet = true
+local currentPlanet = 2
+local onPlanet = false
+local inBossBattle = false
 local shipMaxSpeed = 275
 local numLanes = 5
 local laneWidth = display.contentWidth / numLanes
@@ -114,8 +115,8 @@ background5:insert(starbg)
     return planet
 end]]
 local getPlanet = require("planets").getPlanet
-local planet = getPlanet({planetName = "Sun"})
-background1:insert(planet)
+--local planet = getPlanet({planetName = "Sun"})
+--background1:insert(planet)
 
 -- Object to which the left tap listener is attached. The player character will change lanes to left when they tap on this object
 local leftTapObject = display.newRect(0,0, display.contentWidth / 2, display.contentHeight)
@@ -320,25 +321,28 @@ bottomOfScreen.collision = onCollisionAtBottomOfScreen
 bottomOfScreen:addEventListener("collision")
 
 local function createEnemyShip()
-    local shipLane = math.random(5) -1
-    local shipVelocityY = 190
-    local shipRadius = laneWidth / 4
-    local shipY = -shipRadius
-    shipX = shipLane * laneWidth + laneMiddleX
-    local ship
-    if (math.random(100) < 0) then
-        ship = display.newImage("images/enemyship.png")
-        ship.name = "GoodShip"
-        group:insert(ship)
-    else
-        ship = display.newImage("images/enemyship2.png")
-        ship.name = "BadShip"
-        enemyGroup:insert(ship)
-    end
-    ship.x = shipX
+    if(not onPlanet) then
+        local shipLane = math.random(5) -1
+        local shipVelocityY = 190
+        local shipRadius = laneWidth / 4
+        local shipY = -shipRadius
+        shipX = shipLane * laneWidth + laneMiddleX
+        local ship
+        if (math.random(100) < 0) then
+            ship = display.newImage("images/enemyship.png")
+            ship.name = "GoodShip"
+            group:insert(ship)
+        else
+            ship = display.newImage("images/enemyship2.png")
+            --ship = display.newImage("images/EnemyShips/Alien-Destroyer.png")
+            ship.name = "BadShip"
+            enemyGroup:insert(ship)
+        end
+        ship.x = shipX
 
-    physics.addBody(ship, "dynamic", {radius = shipRadius})
-    ship:setLinearVelocity(0, shipVelocityY)
+        physics.addBody(ship, "dynamic", {radius = shipRadius})
+        ship:setLinearVelocity(0, shipVelocityY)
+    end
 end
 
 local function fireBeam(ship, y1, time1, beam, beamOrigin)
@@ -437,11 +441,22 @@ local function countDownToPlanet(name, timeSec)
     end
 end
 
+local function initBossBattle()
+    inBossBattle = true
+    spawnBoss = require("boss").spawnBoss
+    spawnBoss({planetName = "Mercury", group = enemyGroup})
+end
+
 local function spawnPlanet()
     onPlanet = true
     planet = getPlanet({planetName = planetNames[currentPlanet]})
     background1:insert(planet)
+
+    initBossBattle()
 end
+
+timer.performWithDelay(45000, spawnPlanet)
+timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
 
 local function onPlanetDone()
     planet:removeSelf()
