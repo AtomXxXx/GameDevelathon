@@ -99,11 +99,13 @@ countDownText:setFillColor(1,1,1)
 countDownText.x = display.contentWidth / 2
 countDownText.y = display.contentHeight * 0.05
 
-local fireButton = display.newImage("images/fire.png")
-fireButton.alpha = 0.3
-fireButton.x = display.contentWidth - fireButton.width
-fireButton.y = display.contentCenterY +100
-hud:insert(fireButton)
+if(enableAccelerometer == false) then
+    local fireButton = display.newImage("images/fire.png")
+    fireButton.alpha = 0.3
+    fireButton.x = display.contentWidth - fireButton.width
+    fireButton.y = display.contentCenterY +100
+    hud:insert(fireButton)
+end
 
 -- CREATING ALL THE OBJECTS ON SCREEN
 if (enableMusic) then
@@ -365,7 +367,7 @@ bottomOfScreen:addEventListener("collision")
 
 local function createEnemyShip()
     if(not inBossBattle) then
-        local shipLane = 2 --math.random(5) -1
+        local shipLane = math.random(5) -1
         local shipVelocityY = 190
         local shipRadius = laneWidth / 4
         local shipY = -shipRadius
@@ -413,7 +415,11 @@ local function fireBeam(ship, y1, time1, beam, beamOrigin)
     })
 end
 
-fireButton:addEventListener("tap",function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
+if(fireButton) then
+    fireButton:addEventListener("tap",function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
+else
+    Runtime:addEventListener("tap", function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
+end
 
 local tm = timer.performWithDelay(1500, createEnemyShip, 0)
 
@@ -513,9 +519,9 @@ local function spawnPlanet()
     initBossBattle()
 end
 
---timer.performWithDelay(45000, spawnPlanet)
-timer.performWithDelay(2000, spawnPlanet)
---timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
+timer.performWithDelay(45000, spawnPlanet)
+--timer.performWithDelay(2000, spawnPlanet)
+timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
 
 local function onPlanetDone()
     planet:removeSelf()
