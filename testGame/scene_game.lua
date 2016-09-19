@@ -41,6 +41,11 @@ background1.x = -display.contentWidth / 2
 background1.y = -display.contentHeight / 2
 container:insert(background1)
 
+bullets = display.newGroup()
+bullets.x = -display.contentWidth / 2
+bullets.y = -display.contentHeight / 2
+container:insert(bullets)
+
 enemyGroup = display.newGroup()
 enemyGroup.x = -display.contentWidth / 2
 enemyGroup.y = -display.contentHeight / 2
@@ -80,6 +85,14 @@ scoreText.anchorX = 0
 scoreText.anchorY = 0
 scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
+
+local bossHealthText = display.newText({text = "", font = native.systemFontBold, fontSize = 34})
+bossHealthText.anchorX = 0
+bossHealthText.anchorY = 0
+bossHealthText:setFillColor(1,1,1)
+bossHealthText.x = display.contentWidth - 50
+bossHealthText.y = 0
+hud:insert(bossHealthText)
 
 local countDownText = display.newText({text = "", font = native.systemFontBold, fontSize = 30})
 countDownText:setFillColor(1,1,1)
@@ -156,6 +169,7 @@ end]]
 --local ship = display.newRect(0, 0, laneWidth / 2, 50)
 --ship:setFillColor(0, 0.8, 0.2)
 local ship = display.newImage("images/ship.png")
+ship.name = "PlayerShip"
 ship:translate(0,display.contentHeight - 100)
 
 --ship.x = laneWidth * currentLane + laneMiddleX
@@ -282,6 +296,10 @@ local function onCollisionWithShip(self, event)
             score = score - 5
             event.other:removeSelf()
             scoreText.text = score
+        elseif(event.other.name == "BossBullet") then
+            score = score - 5
+            event.other:removeSelf()
+            scoreText.text = score
         end
     end
 end
@@ -296,6 +314,16 @@ local function onCollision(event)
             obj2:removeSelf()
             score = score + 10
             scoreText.text = score
+        elseif ((obj1.name == "BossShip" and obj2.name == "PlayerBeam") or (obj2.name == "PlayerBeam" and obj1 == "BossShip")) then
+            bossShip = obj1
+            beam = obj2
+            if(obj1.name == "PlayerBeam") then
+                bossShip = obj2
+                beam = obj1
+            end
+            beam:removeSelf()
+            bossShip.health = bossShip.health - 10
+            bossHealthText.text = bossShip.health
         end
     end
 end
@@ -444,7 +472,7 @@ end
 local function initBossBattle()
     inBossBattle = true
     spawnBoss = require("boss").spawnBoss
-    spawnBoss({planetName = "Mercury", group = enemyGroup})
+    spawnBoss({planetName = "Mercury", group = enemyGroup, bulletGroup = bullets})
 end
 
 local function spawnPlanet()
@@ -455,7 +483,8 @@ local function spawnPlanet()
     initBossBattle()
 end
 
-timer.performWithDelay(45000, spawnPlanet)
+--timer.performWithDelay(45000, spawnPlanet)
+timer.performWithDelay(2000, spawnPlanet)
 timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
 
 local function onPlanetDone()
