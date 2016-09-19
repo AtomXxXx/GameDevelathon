@@ -4,12 +4,13 @@ local function initBoss(planetName, group)
     if(planetName == "Mercury") then
         M.boss = display.newImage("images/EnemyShips/6.png")
         M.boss.health = 100
-        physics.addBody(M.boss, "dynamic", {isSensor = true})
+        --physics.addBody(M.boss, "dynamic", {isSensor = true})
+        physics.addBody(M.boss, "kinematic")
     end    
 end
 
 local function fire(bulletGroup)
-    local spawnBullet = require("bullet").spawnBullet
+    --[[local spawnBullet = require("bullet").spawnBullet
     spawnBullet({startPosX = M.boss.x, 
         startPosY = M.boss.y, 
         shipPosX = M.boss.x,
@@ -17,8 +18,23 @@ local function fire(bulletGroup)
         bulletName = "BossBullet",
         angle = 90,
         speed = 150,
+        damage = 10,
         group = bulletGroup
+    })]]
+    M.boss.pattern = require("pattern")
+    M.boss.pattern.startPattern({
+        startPosX = M.boss.x,
+        startPosY = M.boss.y,
+        bulletName = "BossBullet",
+        damage = 10,
+        group = bulletGroup,
+        bulletImage = nil,
+        bulletRadius = 8
     })
+end
+
+function M.onDeath()
+    M.boss.pattern.stopPattern()
 end
 
 local function onTransitionComplete(bulletGroup)

@@ -1,37 +1,58 @@
 local M = {}
 
-local function followPattern()
-    local vel = {x = 0, y = 1}
-    vel.x = vel.x * M.bullet.speed
-    vel.y = vel.y * M.bullet.speed
-    M.bullet:setLinearVelocity(vel.x, vel.y)
+local function setVelocity(angle, speed)
+    local vel = {x = 1, y = 0}
+    local newVel = {x = 0, y = 0}
+
+    local degToRad = math.pi / 180
+    local angleRad = angle * degToRad
+
+    local cos = math.cos(angleRad)
+    local sin = math.sin(angleRad)
+
+    newVel.x = cos * vel.x - sin * vel.y
+    newVel.y = sin * vel.x + cos * vel.y
+
+    newVel.x = newVel.x * speed
+    newVel.y = newVel.y * speed
+    M.bullet:setLinearVelocity(newVel.x, newVel.y)
+end
+
+local function updateBullet()
+    if(M.bullet.x < -100 or M.bullet.x > display.contentWidth + 100 
+    or M.bullet.y < -100 or M.bullet.y > display.contentHeight + 100) then
+        M.bullet:removeSelf()
+    end
 end
 
 function M.spawnBullet(params)
     bulletRadius = 10
+    if (params.radius) then bulletRadius = params.radius end
 
-    M.bullet = display.newCircle(params.shipPosX, params.shipPosY, bulletRadius)
+    path = params.imageFile
+    if(path == nil) then
+        M.bullet = display.newCircle(params.startPosX, params.startPosY, bulletRadius)
+    else
+        M.bullet = display.newImage(path)
+        M.bullet.x = params.startPosX
+        M.bullet.y = params.startPosY
+    end
     M.bullet.name = params.bulletName
-    M.bullet.radius = bulletRadius
-    M.bullet.startPosX = params.startPosX
-    M.bullet.startPosY = params.startPosY
+    if(params.bulletName == nil) then M.bullet.name = "Bullet" end
 
-    M.bullet.shipPosX = params.shipPosX
-    M.bullet.shipPosY = params.shipPosY
-
-    M.bullet.angle = params.angle
-    M.bullet.speed = params.speed
+    M.bullet.damage = params.damage
 
     group = params.group
     group:insert(M.bullet)
 
-    physics.addBody(M.bullet, "dynamic", {radius = bulletRadius, isSensor = true})
+    if(path == nil) then
+        physics.addBody(M.bullet, "dynamic", {radius = bulletRadius, isSensor = true})
+    else
+        physics.addBody(M.bullet, "dynamic", {isSensor = true})
+    end
+    M.bullet:addEventListener("enterFrame", updateBullet)
     
-    transition.to(M.bullet, {x = startPosX, y = startPosY, 10, onComplete = function() followPattern() end})
-end
-
-function M.changeDirection(params)
-
+    setVelocity(params.angle, params.speed)
 end
 
 return M

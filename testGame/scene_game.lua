@@ -66,7 +66,7 @@ hud.x = -display.contentWidth / 2
 hud.y = -display.contentHeight / 2
 container:insert(hud)
 
-local planetNames = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Neptune", "Uranus", "Pluto"}
+local planetNames = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
 local currentPlanet = 2
 local onPlanet = false
 local inBossBattle = false
@@ -283,6 +283,9 @@ group:insert(bottomOfScreen)
 -- PHYSICS
 
 local physics = require("physics")
+--physics.setDrawMode("hybrid")
+physics.setPositionIterations(256)
+physics.setVelocityIterations(256)
 physics.start()
 physics.setGravity(0, 0)
 
@@ -297,11 +300,18 @@ local function onCollisionWithShip(self, event)
             event.other:removeSelf()
             scoreText.text = score
         elseif(event.other.name == "BossBullet") then
-            score = score - 5
+            score = score - event.other.damage
             event.other:removeSelf()
             scoreText.text = score
         end
     end
+end
+
+local function onBossDead(bossShip)
+    inBossBattle = false
+    boss.onDeath()
+    bossShip:removeSelf()
+    bossHealthText.text = ""
 end
 
 local function onCollision(event)
@@ -314,7 +324,8 @@ local function onCollision(event)
             obj2:removeSelf()
             score = score + 10
             scoreText.text = score
-        elseif ((obj1.name == "BossShip" and obj2.name == "PlayerBeam") or (obj2.name == "PlayerBeam" and obj1 == "BossShip")) then
+            return true
+        elseif ((obj1.name == "BossShip" and obj2.name == "PlayerBeam") or (obj2.name == "BossShip" and obj1 == "PlayerBeam")) then
             bossShip = obj1
             beam = obj2
             if(obj1.name == "PlayerBeam") then
@@ -322,8 +333,12 @@ local function onCollision(event)
                 beam = obj1
             end
             beam:removeSelf()
-            bossShip.health = bossShip.health - 10
+            bossShip.health = bossShip.health - beam.damage
             bossHealthText.text = bossShip.health
+            if(bossShip.health <= 0) then
+                onBossDead(bossShip)
+            end
+            return true
         end
     end
 end
@@ -340,7 +355,7 @@ local function onCollisionAtBottomOfScreen(self, event)
     end
 end
 
-physics.addBody(ship, "kinematic")
+physics.addBody(ship, "kinematic", {radius = 20})
 ship.collision = onCollisionWithShip
 ship:addEventListener("collision")
 
@@ -349,8 +364,8 @@ bottomOfScreen.collision = onCollisionAtBottomOfScreen
 bottomOfScreen:addEventListener("collision")
 
 local function createEnemyShip()
-    if(not onPlanet) then
-        local shipLane = math.random(5) -1
+    if(not inBossBattle) then
+        local shipLane = 2 --math.random(5) -1
         local shipVelocityY = 190
         local shipRadius = laneWidth / 4
         local shipY = -shipRadius
@@ -374,15 +389,28 @@ local function createEnemyShip()
 end
 
 local function fireBeam(ship, y1, time1, beam, beamOrigin)
-    local newBeam = display.newImage(beam)
+    --[[local newBeam = display.newImage(beam)
     physics.addBody(newBeam, "dynamic", {isSensor = true})
     newBeam.name = beamOrigin
     newBeam.x = ship.x
     newBeam.y = ship.y
     newBeam:toBack()
-    group:insert(newBeam)
+    bullets:insert(newBeam)
 
-    transition.to(newBeam, {y = y1, time = time1, onComplete = function() display.remove(newBeam) end})
+    transition.to(newBeam, {y = y1, time = time1, onComplete = function() display.remove(newBeam) end})]]
+
+    local spawnBullet = require("bullet").spawnBullet
+    spawnBullet({startPosX = ship.x, 
+        startPosY = ship.y, 
+        shipPosX = ship.x,
+        shipPosY = ship.y,
+        bulletName = beamOrigin,
+        angle = -90,
+        speed = 1000,
+        damage = 10,
+        group = bullets,
+        imageFile = beam
+    })
 end
 
 fireButton:addEventListener("tap",function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
@@ -471,8 +499,10 @@ end
 
 local function initBossBattle()
     inBossBattle = true
-    spawnBoss = require("boss").spawnBoss
-    spawnBoss({planetName = "Mercury", group = enemyGroup, bulletGroup = bullets})
+    boss = require("boss")
+    --spawnBoss = require("boss").spawnBoss
+    boss.spawnBoss({planetName = "Mercury", group = enemyGroup, bulletGroup = bullets})
+    bossHealthText.text = boss.boss.health
 end
 
 local function spawnPlanet()
@@ -485,7 +515,7 @@ end
 
 --timer.performWithDelay(45000, spawnPlanet)
 timer.performWithDelay(2000, spawnPlanet)
-timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
+--timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
 
 local function onPlanetDone()
     planet:removeSelf()
@@ -495,6 +525,9 @@ local function onPlanetDone()
     if(currentPlanet < 11) then
         timer.performWithDelay(10000, spawnPlanet)
         countDownToPlanet(planetNames[currentPlanet], 10)
+    end
+    if(inBossBattle) then
+        onBossDead(boss.boss)
     end
 end
 
@@ -506,7 +539,8 @@ local function movePlanet(planet, speed)
 end
 
 local function updateFrame()
-    local backgroundSpeed = 0.8
+    local backgroundSpeed = 2.5 --0.8
+    if(inBossBattle) then backgroundSpeed = 0.5 end
     moveObjectsInGroup(spaceDusts, 75)
     --moveObjectsInGroup(background1, backgroundSpeed * 1.0)
     if(onPlanet) then movePlanet(planet, backgroundSpeed * 1.0) end
