@@ -444,7 +444,10 @@ local function createStars(scale, group)
     star.x = math.random(display.contentWidth)
     star.y = -star.height / 2
     group:insert(star)
-    timer.performWithDelay(math.random(5000), function() createStars(scale, group) end)
+    local timeToNextStar = math.random(5000)
+    if(inBossBattle) then
+        timeToNextStar = math.random(20000)
+    timer.performWithDelay(timeToNextStar, function() createStars(scale, group) end)
 end
 
 local function initStars(scale, group)
