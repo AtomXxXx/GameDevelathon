@@ -89,7 +89,7 @@ scoreText.anchorY = 0
 scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
-local bossHealthText = display.newText({text = "100", font = native.systemFontBold, fontSize = 34})
+local bossHealthText = display.newText({text = "", font = native.systemFontBold, fontSize = 34})
 bossHealthText.anchorX = 0
 bossHealthText.anchorY = 0
 bossHealthText:setFillColor(1,1,1)
@@ -281,6 +281,7 @@ local function onCollision(event)
             beam:removeSelf()
             bossShip.health = bossShip.health - beam.damage
             bossHealthText.text = bossShip.health
+            bossHealthText.x = display.contentWidth - bossHealthText.width
             if(bossShip.health <= 0) then
                 onBossDead(bossShip)
             end
@@ -457,6 +458,7 @@ local function initBossBattle()
     --spawnBoss = require("boss").spawnBoss
     boss.spawnBoss({planetName = "Mercury", group = enemyGroup, bulletGroup = bullets})
     bossHealthText.text = boss.boss.health
+    bossHealthText.x = display.contentWidth - bossHealthText.width
 end
 
 local function spawnPlanet()

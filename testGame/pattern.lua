@@ -8,7 +8,7 @@ local function fireBullet()
             startPosX = M.startPosX, 
             startPosY = M.startPosY, 
             bulletName = M.bulletName,
-            angle = M.angle * i,
+            angle = M.angle + (M.angleBetweenBullets * (i - 1)),
             speed = M.speedOfBullet,
             damage = M.damage,
             group = M.group,
@@ -37,12 +37,12 @@ end
 function M.startPattern(params)
 
     M.numBulletsTogether = 3
-    M.angleBetweenBullets = 10
-    M.speedOfBullet = 275
-    M.timeGapFrames = 7
-    M.angle = 50
+    M.angleBetweenBullets = 30
+    M.speedOfBullet = 300
+    M.timeGapFrames = 10
+    M.angle = 60
     M.rateAnglePerFrame = 0.8
-    M.maxRotation = 30
+    M.maxRotation = 60
 
     M.startPosX = params.startPosX
     M.startPosY = params.startPosY
