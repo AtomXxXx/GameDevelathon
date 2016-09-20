@@ -21,24 +21,29 @@ local function fire(bulletGroup)
         damage = 10,
         group = bulletGroup
     })]]
-    M.boss.pattern = require("pattern")
-    M.boss.pattern.startPattern({
-        startPosX = M.boss.x,
-        startPosY = M.boss.y,
-        bulletName = "BossBullet",
-        damage = 10,
-        group = bulletGroup,
-        bulletImage = nil,
-        bulletRadius = 8
-    })
+    if(M.boss.x and M.boss.y) then
+        M.boss.shooting = true
+        M.boss.pattern = require("pattern")
+        M.boss.pattern.startPattern({
+            startPosX = M.boss.x,
+            startPosY = M.boss.y,
+            bulletName = "BossBullet",
+            damage = 10,
+            group = bulletGroup,
+            bulletImage = nil,
+            bulletRadius = 8
+        })
+    end
 end
 
 function M.onDeath()
-    M.boss.pattern.stopPattern()
+    if(M.boss.shooting) then
+        M.boss.shooting = false
+        M.boss.pattern.stopPattern()
+    end
 end
 
 local function onTransitionComplete(bulletGroup)
-    canShoot = true
     fire(bulletGroup)
 end
 
@@ -58,11 +63,21 @@ function M.spawnBoss(params)
     M.boss.name = "BossShip"
     M.boss.x = display.contentWidth / 2
     M.boss.y = -M.boss.height / 2
-    M.boss.canShoot = false
+    M.boss.shooting = false
     M.boss.health = 100
     transition.to(M.boss, {y = M.boss.height / 2, 10, onComplete = function() onTransitionComplete(bulletGroup) end})
 end
 
-
+function M.destroyImmediate()
+    if(M.boss) then
+        M.boss:removeSelf()
+    end
+    if(M.boss.pattern) then
+        if(M.boss.shooting) then
+            M.boss.pattern.stopPattern()
+        end
+        M.boss.pattern.destroyAll(bulletGroup)
+    end
+end
 
 return M

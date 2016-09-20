@@ -1,6 +1,39 @@
 local composer = require( "composer" )
 local json = require("json")
 local scene = composer.newScene()
+local gameRunning = true
+
+
+local planetNames = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
+local currentPlanet = 2
+local onPlanet = false
+local inBossBattle = false
+local shipMaxSpeed = 275
+local numLanes = 5
+local laneWidth = display.contentWidth / numLanes
+local laneMiddleX = laneWidth / 2
+local currentLane = 2
+local lanes = {}
+local score = 0
+
+local scoreText
+local bossHealthText
+local countDownText
+local fireButton
+local starbg
+local getPlanet
+local ship
+local bottomOfScreen
+
+
+local enableAccelerometer
+local enableMusic
+local shipImage
+
+local physics = require("physics")
+
+
+function scene:create(event)
 
 system.setIdleTimer(false)
 
@@ -11,13 +44,15 @@ local settings = json.decode(string)
 file:close()
 file = nil
 
-local enableAccelerometer = settings.accelerometerOn
-local enableMusic = settings.musicOn
-local shipImage = settings.ship
+enableAccelerometer = settings.accelerometerOn
+enableMusic = settings.musicOn
+shipImage = settings.ship
 
 container = display.newContainer(display.contentWidth, display.contentHeight)
 container.x = display.contentWidth / 2
 container.y = display.contentHeight / 2
+
+self.view = container
 
 background5 = display.newGroup()
 background5.x = -display.contentWidth / 2
@@ -69,27 +104,16 @@ hud.x = -display.contentWidth / 2
 hud.y = -display.contentHeight / 2
 container:insert(hud)
 
-local planetNames = {"Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"}
-local currentPlanet = 2
-local onPlanet = false
-local inBossBattle = false
-local shipMaxSpeed = 275
-local numLanes = 5
-local laneWidth = display.contentWidth / numLanes
-local laneMiddleX = laneWidth / 2
-local currentLane = 2
-local lanes = {}
-local score = 0
 
 -- CREATING HEADS UP DISPLAY
 
-local scoreText = display.newText({text = score, font = native.systemFontBold, fontSize = 34})
+scoreText = display.newText({text = score, font = native.systemFontBold, fontSize = 34})
 scoreText.anchorX = 0
 scoreText.anchorY = 0
 scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
-local bossHealthText = display.newText({text = "", font = native.systemFontBold, fontSize = 34})
+bossHealthText = display.newText({text = "", font = native.systemFontBold, fontSize = 34})
 bossHealthText.anchorX = 0
 bossHealthText.anchorY = 0
 bossHealthText:setFillColor(1,1,1)
@@ -97,12 +121,12 @@ bossHealthText.x = display.contentWidth - bossHealthText.width
 bossHealthText.y = 0
 hud:insert(bossHealthText)
 
-local countDownText = display.newText({text = "", font = native.systemFontBold, fontSize = 30})
+countDownText = display.newText({text = "", font = native.systemFontBold, fontSize = 30})
 countDownText:setFillColor(1,1,1)
 countDownText.x = display.contentWidth / 2
 countDownText.y = display.contentHeight * 0.05
 
-local fireButton
+
 if(enableAccelerometer == false) then
     fireButton = display.newImage("images/fire.png")
     fireButton.alpha = 0.3
@@ -117,17 +141,17 @@ if (enableMusic) then
     local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
 end
 
-local starbg = display.newImage("images/starsbackground.png")
+starbg = display.newImage("images/starsbackground.png")
 starbg:scale(1.0, 1.2)
 starbg.anchorX = 0
 starbg.anchorY = 0
 background5:insert(starbg)
 
-local getPlanet = require("planets").getPlanet
+getPlanet = require("planets").getPlanet
 --local planet = getPlanet({planetName = "Sun"})
 --background1:insert(planet)
 
-local ship = display.newImage(shipImage)
+ship = display.newImage(shipImage)
 ship.name = "PlayerShip"
 ship:translate(0,display.contentHeight - 100)
 
@@ -220,7 +244,7 @@ if ( enableAccelerometer == false) then
     starbg:addEventListener("touch", touchHandler)
 end
 
-local bottomOfScreen = display.newRect(0, display.contentHeight + laneWidth / 2, display.contentWidth, 50)
+bottomOfScreen = display.newRect(0, display.contentHeight + laneWidth / 2, display.contentWidth, 50)
 bottomOfScreen.anchorX = 0
 bottomOfScreen.anchorY = 0
 bottomOfScreen.name = "BottomOfScreen"
@@ -228,7 +252,6 @@ group:insert(bottomOfScreen)
 
 -- PHYSICS
 
-local physics = require("physics")
 --physics.setDrawMode("hybrid")
 physics.setPositionIterations(256)
 physics.setVelocityIterations(256)
@@ -311,6 +334,7 @@ bottomOfScreen.collision = onCollisionAtBottomOfScreen
 bottomOfScreen:addEventListener("collision")
 
 local function createEnemyShip()
+    if(gameRunning) then
     if(not inBossBattle) then
         local shipLane = math.random(5) -1
         local shipVelocityY = 190
@@ -332,6 +356,9 @@ local function createEnemyShip()
 
         physics.addBody(ship, "dynamic", {radius = shipRadius})
         ship:setLinearVelocity(0, shipVelocityY)
+
+        timer.performWithDelay(1500, createEnemyShip)
+    end
     end
 end
 
@@ -360,13 +387,18 @@ local function fireBeam(ship, y1, time1, beam, beamOrigin)
     })
 end
 
-if(enableAccelerometer == false) then
-    fireButton:addEventListener("tap",function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
-else
-    Runtime:addEventListener("tap", function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
+local function fireBeamInvoker()
+    fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam")
 end
 
-local tm = timer.performWithDelay(1500, createEnemyShip, 0)
+if(enableAccelerometer == false) then
+    fireButton:addEventListener("tap", fireBeamInvoker)
+else
+    Runtime:addEventListener("tap", fireBeamInvoker)
+end
+
+--local tm = timer.performWithDelay(1500, createEnemyShip, 0)
+createEnemyShip()
 
 local function getRandomStar(scale)
     local starnum = math.random(3)
@@ -385,15 +417,17 @@ local function getRandomStar(scale)
 end
 
 local function createStars(scale, group)
-    local star = getRandomStar(scale)
-    star.x = math.random(display.contentWidth)
-    star.y = -star.height / 2
-    group:insert(star)
-    local timeToNextStar = math.random(5000)
-    if(inBossBattle) then
-        timeToNextStar = math.random(20000)
+    if(gameRunning) then
+        local star = getRandomStar(scale)
+        star.x = math.random(display.contentWidth)
+        star.y = -star.height / 2
+        group:insert(star)
+        local timeToNextStar = math.random(5000)
+        if(inBossBattle) then
+            timeToNextStar = math.random(20000)
+        end
+        timer.performWithDelay(timeToNextStar, function() createStars(scale, group) end)
     end
-    timer.performWithDelay(timeToNextStar, function() createStars(scale, group) end)
 end
 
 local function initStars(scale, group)
@@ -415,12 +449,13 @@ createStars(0.6, background4)
 
 local function createSpaceDust()
 
-    local spaceDust = display.newRect(math.random(display.contentWidth), -20, 1.2, display.contentHeight / 6)
-    spaceDust.anchorY = 0
-    spaceDust.alpha = 0.3
-    spaceDusts:insert(spaceDust)
-
-    timer.performWithDelay(math.random(150), createSpaceDust)
+    if(gameRunning) then
+        local spaceDust = display.newRect(math.random(display.contentWidth), -20, 1.2, display.contentHeight / 6)
+        spaceDust.anchorY = 0
+        spaceDust.alpha = 0.3
+        spaceDusts:insert(spaceDust)
+        timer.performWithDelay(math.random(150), createSpaceDust)
+    end
 end
 
 
@@ -444,11 +479,13 @@ local function moveObjectsInGroup(group, speed)
 end
 
 local function countDownToPlanet(name, timeSec)
-    countDownText.text = name .. ": " .. timeSec
-    if(timeSec == 0) then
-        countDownText.text = ""
-    else
-        timer.performWithDelay(1000, function() countDownToPlanet(name, timeSec - 1) end)
+    if(gameRunning) then
+        countDownText.text = name .. ": " .. timeSec
+        if(timeSec == 0) then
+            countDownText.text = ""
+        else
+            timer.performWithDelay(1000, function() countDownToPlanet(name, timeSec - 1) end)
+        end
     end
 end
 
@@ -462,16 +499,21 @@ local function initBossBattle()
 end
 
 local function spawnPlanet()
-    onPlanet = true
-    planet = getPlanet({planetName = planetNames[currentPlanet]})
-    background1:insert(planet)
+    if(gameRunning) then
+        onPlanet = true
+        planet = getPlanet({planetName = planetNames[currentPlanet]})
+        background1:insert(planet)
 
-    initBossBattle()
+        initBossBattle()
+    end
 end
 
-timer.performWithDelay(45000, spawnPlanet)
+--timer.performWithDelay(45000, spawnPlanet)
 --timer.performWithDelay(2000, spawnPlanet)
-timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
+--timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
+
+timer.performWithDelay(5000, spawnPlanet)
+countDownToPlanet(planetNames[currentPlanet], 5)
 
 local function onPlanetDone()
     planet:removeSelf()
@@ -503,8 +545,34 @@ local function updateFrame()
     moveObjectsInGroup(background2, backgroundSpeed * 0.7)
     moveObjectsInGroup(background3, backgroundSpeed * 0.4)
     moveObjectsInGroup(background4, backgroundSpeed * 0.1)
+
+    if(score < 0) then
+        gameRunning = false
+        Runtime:removeEventListener("enterFrame", updateFrame)
+        if(enableAccelerometer == false) then
+            fireButton:removeEventListener("tap",fireBeamInvoker)
+        else
+            Runtime:removeEventListener("tap", fireBeamInvoker)
+        end
+        bottomOfScreen:removeEventListener("collision")
+        ship:removeEventListener("collision")
+        Runtime:removeEventListener("collision", onCollision)
+        if(enableAccelerometer) then
+            Runtime:removeEventListener( "accelerometer", onTilt )
+        end
+
+        if(inBossBattle) then
+            boss.destroyImmediate()
+        end
+
+        physics.stop()
+        composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 }) 
+    end
 end
 
 Runtime:addEventListener("enterFrame", updateFrame)
+end
+
+scene:addEventListener("create", scene)
 
 return scene

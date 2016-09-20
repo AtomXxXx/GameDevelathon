@@ -63,5 +63,9 @@ function M.stopPattern()
     Runtime:removeEventListener("enterFrame", updatePattern)
 end
 
+function M.destroyAll(group)
+    group:removeSelf()
+end
+
 
 return M
