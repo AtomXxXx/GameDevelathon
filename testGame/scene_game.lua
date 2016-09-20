@@ -125,7 +125,7 @@ countDownText = display.newText({text = "", font = native.systemFontBold, fontSi
 countDownText:setFillColor(1,1,1)
 countDownText.x = display.contentWidth / 2
 countDownText.y = display.contentHeight * 0.05
-
+hud:insert(countDownText)
 
 if(enableAccelerometer == false) then
     fireButton = display.newImage("images/fire.png")
@@ -566,7 +566,7 @@ local function updateFrame()
         end
 
         physics.stop()
-        composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 }) 
+        composer.gotoScene("game_end", { effect = "crossFade", time = 333 }) 
     end
 end
 
