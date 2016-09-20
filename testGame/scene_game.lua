@@ -11,6 +11,7 @@ file = nil
 
 local enableAccelerometer = settings.accelerometerOn
 local enableMusic = settings.musicOn
+local shipImage = settings.ship
 
 container = display.newContainer(display.contentWidth, display.contentHeight)
 container.x = display.contentWidth / 2
@@ -86,11 +87,11 @@ scoreText.anchorY = 0
 scoreText:setFillColor(1,1,1)
 hud:insert(scoreText)
 
-local bossHealthText = display.newText({text = "", font = native.systemFontBold, fontSize = 34})
+local bossHealthText = display.newText({text = "100", font = native.systemFontBold, fontSize = 34})
 bossHealthText.anchorX = 0
 bossHealthText.anchorY = 0
 bossHealthText:setFillColor(1,1,1)
-bossHealthText.x = display.contentWidth - 50
+bossHealthText.x = display.contentWidth - bossHealthText.width
 bossHealthText.y = 0
 hud:insert(bossHealthText)
 
@@ -99,8 +100,9 @@ countDownText:setFillColor(1,1,1)
 countDownText.x = display.contentWidth / 2
 countDownText.y = display.contentHeight * 0.05
 
+local fireButton
 if(enableAccelerometer == false) then
-    local fireButton = display.newImage("images/fire.png")
+    fireButton = display.newImage("images/fire.png")
     fireButton.alpha = 0.3
     fireButton.x = display.contentWidth - fireButton.width
     fireButton.y = display.contentCenterY +100
@@ -170,7 +172,7 @@ end]]
 
 --local ship = display.newRect(0, 0, laneWidth / 2, 50)
 --ship:setFillColor(0, 0.8, 0.2)
-local ship = display.newImage("images/ship.png")
+local ship = display.newImage(shipImage)
 ship.name = "PlayerShip"
 ship:translate(0,display.contentHeight - 100)
 
@@ -276,6 +278,42 @@ if ( enableAccelerometer == false) then
     rightTapObject:addEventListener("touch", touchHandler)
 end
 
+--[[local function touchHandler( event )
+    if (event.phase == "began") then
+
+        display.getCurrentStage():setFocus( event.target )
+        event.target.isFocus = true
+
+        if (event.target.name == "LeftTapObject") then
+            Runtime:addEventListener( "enterFrame", moveShipLeft )
+        elseif(event.target.name == "RightTapObject") then
+            Runtime:addEventListener( "enterFrame", moveShipRight )
+        end
+
+        holding = true
+
+    elseif (event.target.isFocus) then
+        if (event.phase == "moved") then
+        elseif (event.phase == "ended" or event.phase == "cancelled") then
+            holding = false
+            event.target.isFocus = false
+
+            if (event.target.name == "LeftTapObject") then
+                Runtime:removeEventListener( "enterFrame", moveShipLeft )
+                ship:setLinearVelocity(0, 0)
+            elseif(event.target.name == "RightTapObject") then
+                Runtime:removeEventListener( "enterFrame", moveShipRight )
+                ship:setLinearVelocity(0, 0)
+            end
+
+            display.getCurrentStage():setFocus( nil )
+        end
+    end
+end
+if ( enableAccelerometer == false) then
+    starbg:addEventListener("touch", touchHandler)
+end]]
+
 local bottomOfScreen = display.newRect(0, display.contentHeight + laneWidth / 2, display.contentWidth, 50)
 bottomOfScreen.anchorX = 0
 bottomOfScreen.anchorY = 0
@@ -357,7 +395,7 @@ local function onCollisionAtBottomOfScreen(self, event)
     end
 end
 
-physics.addBody(ship, "kinematic", {radius = 20})
+physics.addBody(ship, "kinematic", {radius = 30})
 ship.collision = onCollisionWithShip
 ship:addEventListener("collision")
 
@@ -415,7 +453,7 @@ local function fireBeam(ship, y1, time1, beam, beamOrigin)
     })
 end
 
-if(fireButton) then
+if(enableAccelerometer == false) then
     fireButton:addEventListener("tap",function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
 else
     Runtime:addEventListener("tap", function() fireBeam(ship, -100, 500, "images/beam.png", "PlayerBeam") end)
@@ -447,6 +485,7 @@ local function createStars(scale, group)
     local timeToNextStar = math.random(5000)
     if(inBossBattle) then
         timeToNextStar = math.random(20000)
+    end
     timer.performWithDelay(timeToNextStar, function() createStars(scale, group) end)
 end
 
