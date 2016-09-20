@@ -2,6 +2,8 @@ local composer = require( "composer" )
 local json = require("json")
 local scene = composer.newScene()
 
+
+
 local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
 local file, errorstring = io.open(path, "r")
 local string = file:read("*a")
@@ -171,6 +173,7 @@ end]]
 --local ship = display.newRect(0, 0, laneWidth / 2, 50)
 --ship:setFillColor(0, 0.8, 0.2)
 local ship = display.newImage("images/5.png")
+--local ship = getshipname
 ship.name = "PlayerShip"
 ship:translate(0,display.contentHeight - 100)
 

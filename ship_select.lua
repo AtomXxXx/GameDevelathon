@@ -4,7 +4,35 @@ local widget = require( "widget" )
 
 
 -- Function to handle button events
-local function handleButtonEvent( event )
+local function handleShip1Event( event )
+
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
+		print("ship1")
+
+    end
+end
+
+local function handleShip2Event( event )
+
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
+		print("1")
+    end
+end
+local function handleShip3Event( event )
+
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
+    end
+end
+local function handleShip4Event( event )
+
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
+    end
+end
+local function handleShip5Event( event )
 
     if ( "ended" == event.phase ) then
         composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
@@ -29,7 +57,7 @@ function scene:create( event )
        
 		defaultFile = "images/1.png", -- the image to be used in the normal state
         overFile = "images/1.png", -- the image to be used in the pressed state
-        onEvent = handleButtonEvent
+        onEvent = handleShip1Event
     })
     ship1.x = display.contentCenterX -100
     ship1.y = display.contentHeight -440
@@ -39,7 +67,7 @@ function scene:create( event )
        
 		defaultFile = "images/2.png", -- the image to be used in the normal state
         overFile = "images/2.png", -- the image to be used in the pressed state
-        onEvent = handleButtonEvent
+        onEvent = handleShip2Event
     })
     ship2.x = display.contentCenterX +100
     ship2.y = display.contentHeight -440
@@ -49,7 +77,7 @@ function scene:create( event )
        
 		defaultFile = "images/3.png", -- the image to be used in the normal state
         overFile = "images/3.png", -- the image to be used in the pressed state
-        onEvent = handleButtonEvent
+        onEvent = handleShip3Event
     })
     ship3.x = display.contentCenterX 
     ship3.y = display.contentHeight -320
@@ -59,7 +87,7 @@ function scene:create( event )
        
 		defaultFile = "images/4.png", -- the image to be used in the normal state
         overFile = "images/4.png", -- the image to be used in the pressed state
-        onEvent = handleButtonEvent
+        onEvent = handleShip4Event
     })
     ship4.x = display.contentCenterX - 100
     ship4.y = display.contentHeight -200
@@ -69,7 +97,7 @@ function scene:create( event )
        
 		defaultFile = "images/5.png", -- the image to be used in the normal state
         overFile = "images/5.png", -- the image to be used in the pressed state
-        onEvent = handleButtonEvent
+        onEvent = handleShip5Event
     })
     ship5.x = display.contentCenterX + 100
     ship5.y = display.contentHeight -200
