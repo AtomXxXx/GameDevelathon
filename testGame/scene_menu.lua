@@ -16,7 +16,7 @@ local json = require("json")
 function scene:create( event )
 
     local sceneGroup = self.view
-    local settings = {musicOn = true, soundOn = true, accelerometerOn = true}
+    local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png"}
     
     local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
     local file, errorstring = io.open(path, "r")
@@ -56,7 +56,12 @@ function scene:create( event )
         composer.gotoScene("game_settings", { effect = "crossFade", time = 333 })
     end
 end
+local function handleChooseShipButtonEvent( event )
 
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("ship_select", { effect = "crossFade", time = 333 })
+    end
+end
    
     local function handleButtonEvent( event ) -- create a function that responds to the button press of start playing
         if ( "ended" == event.phase ) then -- when the player lifts his or her finger from the button, that is known as the ended phase
@@ -92,6 +97,21 @@ end
     btn_startPlaying.x = display.contentCenterX -- position the button on the center of x axis
     btn_startPlaying.y = display.contentCenterY -- position the button on the center of y axis
     sceneGroup:insert(btn_startPlaying) -- insert button into sceneGroup for scene management
+
+	local chooseShipButton = widget.newButton({
+        width = 210,
+        height = 90,
+		defaultFile = "images/btn-blank.png", -- the image to be used in the normal state
+        overFile = "images/btn-blank-over.png", -- the image to be used in the pressed state
+		label = "Select Player Ship", -- the text to display on the button
+        font = system.defaultFontBold, -- the font name to be used
+        fontSize = 24, -- the size of the font
+        labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0, 0.5 } }, -- the color of the label and the color when pressed
+        onEvent = handleChooseShipButtonEvent
+    })
+    chooseShipButton.x = display.contentCenterX
+    chooseShipButton.y = display.contentCenterY +200
+    sceneGroup:insert( chooseShipButton )
 
 end
 
