@@ -24,11 +24,26 @@ local starbg
 local getPlanet
 local ship
 local bottomOfScreen
+local hpBg
+local hpFg
+local hpWarningOnScreen = false
+local hp
+local energy = 100
+local energyPerBullet = 20
+local maxEnergy = 100
+local energyBg
+local energyFg
+
+local bossHpBg
+local bossHpFg
+local bossHp
+local maxBossHp
 
 
 local enableAccelerometer
 local enableMusic
 local shipImage
+local enableKeyboard = true
 
 local physics = require("physics")
 
@@ -127,6 +142,33 @@ countDownText.x = display.contentWidth / 2
 countDownText.y = display.contentHeight * 0.05
 hud:insert(countDownText)
 
+hpBg = display.newRect( 0, display.contentHeight - 25, 104, 25 )
+hpBg.anchorX = 0
+hpBg:setFillColor( 1, 1, 1, 0.5 )
+hud:insert(hpBg)
+
+hpFg = display.newRect( hpBg.x - 2, hpBg.y, 100, 18 )
+hpFg.anchorX = 0
+hpFg:setFillColor( 0.2, 0.85, 0.4 )
+hud:insert(hpFg)
+
+energyBg = display.newRect(display.contentWidth - 105, display.contentHeight - 25, 104, 25)
+energyBg.anchorX = 0
+energyBg:setFillColor( 1, 1, 1, 0.5 )
+hud:insert(energyBg)
+
+energyFg = display.newRect( energyBg.x + 2, energyBg.y, 100, 18 )
+energyFg.anchorX = 0
+energyFg:setFillColor( 0.2, 0.4, 0.85 )
+hud:insert(energyFg)
+
+hpWarningText = display.newText({text = "", font = native.systemFontBold, fontSize = 30})
+hpWarningText.x = display.contentWidth / 2
+hpWarningText.y = display.contentHeight / 2
+hud:insert(hpWarningText)
+
+
+
 if(enableAccelerometer == false) then
     fireButton = display.newImage("images/fire.png")
     fireButton.alpha = 0.3
@@ -159,8 +201,54 @@ ship:translate(0,display.contentHeight - 100)
 ship.x = display.contentWidth / 2
 group:insert(ship)
 
+local function setHp( hp )
+	hpFg.width = hpBg.width * hp / 100
+	hpFg:setFillColor( 100/hp, hp/100, 0 )
+end
+
+local function setBossHp( bhp )
+	bossHpFg.width = bossHpBg.width * bhp / maxBossHp
+	bossHpFg:setFillColor( 100/maxBossHp, bhp/maxBossHp, 0 )
+end
+
+local function setEnergy(enrgy)
+    energy = enrgy
+    if(energy < 0) then
+        energy = 0
+    elseif(energy >= maxEnergy) then
+        energy = maxEnergy
+    end
+    energyFg.width = energyBg.width * energy / 100
+end
+
+hp = 100
+setHp(hp)
+
+local function blinkHpWarning()
+
+    if(gameRunning) then
+    if(hp <= 20) then
+
+        if(hpWarningOnScreen == false) then
+            hpWarningText.text = "HP LOW"
+            hpWarningOnScreen = true
+        else
+            hpWarningText.text = ""
+            hpWarningOnScreen = false
+        end
+    else
+        hpWarningText.text = ""
+        hpWarningOnScreen = false
+    end
+    timer.performWithDelay(500, blinkHpWarning)
+    end
+end
+
+blinkHpWarning()
+
 local function boundShipToScreen(speed)
     if (ship.x < ship.width / 2) then
+        print("hi")
         ship.x = ship.width / 2
         ship:setLinearVelocity(0, 0 )
     elseif (ship.x > display.contentWidth - ship.width / 2) then
@@ -190,13 +278,13 @@ if(enableAccelerometer) then
 end
 
 local function moveShipLeft()
-    if (holding) then
+    if (holding and gameRunning) then
         ship:setLinearVelocity( -shipMaxSpeed, 0 )
         boundShipToScreen(-shipMaxSpeed)
     end
 end
 local function moveShipRight()
-    if(holding) then
+    if(holding and gameRunning) then
         ship:setLinearVelocity( shipMaxSpeed, 0 )
         boundShipToScreen(shipMaxSpeed)
     end
@@ -244,6 +332,29 @@ if ( enableAccelerometer == false) then
     starbg:addEventListener("touch", touchHandler)
 end
 
+local function onKeyEvent(event)
+    if(gameRunning) then
+        if(event.keyName == "left") then
+            if(event.phase == "down") then
+                ship:setLinearVelocity(-shipMaxSpeed, 0)
+            elseif(event.phase == "up") then
+                ship:setLinearVelocity(0, 0)
+            end
+        elseif(event.keyName == "right") then
+            if(event.phase == "down") then
+                ship:setLinearVelocity(shipMaxSpeed, 0)
+            elseif(event.phase == "up") then
+                ship:setLinearVelocity(0, 0)
+            end
+            boundShipToScreen(shipMaxSpeed)
+        end
+    end
+end
+
+if (enableKeyboard) then
+    Runtime:addEventListener("key", onKeyEvent)
+end
+
 bottomOfScreen = display.newRect(0, display.contentHeight + laneWidth / 2, display.contentWidth, 50)
 bottomOfScreen.anchorX = 0
 bottomOfScreen.anchorY = 0
@@ -265,18 +376,20 @@ local function onCollisionWithShip(self, event)
             event.other:removeSelf()
             scoreText.text = score
         elseif(event.other.name == "BadShip") then
-            score = score - 5
+            hp = hp - 10
+            setHp(hp)
             event.other:removeSelf()
-            scoreText.text = score
         elseif(event.other.name == "BossBullet") then
-            score = score - event.other.damage
+            hp = hp - event.other.damage
+            setHp(hp)
             event.other:removeSelf()
-            scoreText.text = score
         end
     end
 end
 
 local function onBossDead(bossShip)
+    bossHpBg:removeSelf()
+    bossHpFg:removeSelf()
     inBossBattle = false
     boss.onDeath()
     bossShip:removeSelf()
@@ -302,7 +415,10 @@ local function onCollision(event)
                 beam = obj1
             end
             beam:removeSelf()
+            score = score + 2
+            scoreText.text = score
             bossShip.health = bossShip.health - beam.damage
+            setBossHp(bossShip.health)
             bossHealthText.text = bossShip.health
             bossHealthText.x = display.contentWidth - bossHealthText.width
             if(bossShip.health <= 0) then
@@ -357,34 +473,28 @@ local function createEnemyShip()
         physics.addBody(ship, "dynamic", {radius = shipRadius})
         ship:setLinearVelocity(0, shipVelocityY)
 
-        timer.performWithDelay(1500, createEnemyShip)
     end
+    
+    timer.performWithDelay(1500, createEnemyShip)
     end
 end
 
 local function fireBeam(ship, y1, time1, beam, beamOrigin)
-    --[[local newBeam = display.newImage(beam)
-    physics.addBody(newBeam, "dynamic", {isSensor = true})
-    newBeam.name = beamOrigin
-    newBeam.x = ship.x
-    newBeam.y = ship.y
-    newBeam:toBack()
-    bullets:insert(newBeam)
-
-    transition.to(newBeam, {y = y1, time = time1, onComplete = function() display.remove(newBeam) end})]]
-
-    local spawnBullet = require("bullet").spawnBullet
-    spawnBullet({startPosX = ship.x, 
-        startPosY = ship.y, 
-        shipPosX = ship.x,
-        shipPosY = ship.y,
-        bulletName = beamOrigin,
-        angle = -90,
-        speed = 1000,
-        damage = 10,
-        group = bullets,
-        imageFile = beam
-    })
+    if(energy >= energyPerBullet) then
+        setEnergy(energy - energyPerBullet)
+        local spawnBullet = require("bullet").spawnBullet
+        spawnBullet({startPosX = ship.x, 
+            startPosY = ship.y, 
+            shipPosX = ship.x,
+            shipPosY = ship.y,
+            bulletName = beamOrigin,
+            angle = -90,
+            speed = 1000,
+            damage = 10,
+            group = bullets,
+            imageFile = beam
+        })
+    end
 end
 
 local function fireBeamInvoker()
@@ -462,7 +572,7 @@ end
 createSpaceDust()
 
 local function moveObjectsInGroup(group, speed)
-    if(group.numChildren ~= 0) then
+    if( not (group.numChildren == 0 or group.numChildren == nil)) then
         for i=1, group.numChildren do
             group[i].y = group[i].y + speed
         end
@@ -496,6 +606,21 @@ local function initBossBattle()
     boss.spawnBoss({planetName = "Mercury", group = enemyGroup, bulletGroup = bullets})
     bossHealthText.text = boss.boss.health
     bossHealthText.x = display.contentWidth - bossHealthText.width
+
+    bossHp = boss.boss.health
+
+    bossHpBg = display.newRect( 10, 50, 104, 25 )
+    bossHpBg.anchorX = 0
+    bossHpBg:setFillColor( 1, 1, 1, 0.5 )
+    hud:insert(bossHpBg)
+
+    bossHpFg = display.newRect( bossHpBg.x + 2, bossHpBg.y, 100, 18 )
+    bossHpFg.anchorX = 0
+    bossHpFg:setFillColor( 0.2, 0.85, 0.4 )
+    hud:insert(bossHpFg)
+
+    maxBossHp = boss.boss.health
+    setBossHp(bossHp)
 end
 
 local function spawnPlanet()
@@ -536,6 +661,19 @@ local function movePlanet(planet, speed)
     end
 end
 
+local function destroyScene()
+    bottomOfScreen:removeEventListener("collision")
+    ship:removeEventListener("collision")
+    Runtime:removeEventListener("collision", onCollision)
+
+    if(inBossBattle) then
+        boss.destroyImmediate()
+    end
+
+    physics.stop()
+    composer.gotoScene("game_end", { effect = "crossFade", time = 333 })
+end
+
 local function updateFrame()
     local backgroundSpeed = 2.5 --0.8
     if(inBossBattle) then backgroundSpeed = 0.5 end
@@ -546,27 +684,25 @@ local function updateFrame()
     moveObjectsInGroup(background3, backgroundSpeed * 0.4)
     moveObjectsInGroup(background4, backgroundSpeed * 0.1)
 
-    if(score < 0) then
+    setEnergy(energy + 0.4)
+
+    setHp(hp)
+
+    hp = hp + 0.05
+    if(hp > 100) then hp = 100 end
+    if(hp <= 0) then
         gameRunning = false
+        if(enableAccelerometer) then
+            Runtime:removeEventListener( "accelerometer", onTilt )
+        end
+        hpWarningOnScreen = false
         Runtime:removeEventListener("enterFrame", updateFrame)
         if(enableAccelerometer == false) then
             fireButton:removeEventListener("tap",fireBeamInvoker)
         else
             Runtime:removeEventListener("tap", fireBeamInvoker)
         end
-        bottomOfScreen:removeEventListener("collision")
-        ship:removeEventListener("collision")
-        Runtime:removeEventListener("collision", onCollision)
-        if(enableAccelerometer) then
-            Runtime:removeEventListener( "accelerometer", onTilt )
-        end
-
-        if(inBossBattle) then
-            boss.destroyImmediate()
-        end
-
-        physics.stop()
-        composer.gotoScene("game_end", { effect = "crossFade", time = 333 }) 
+        timer.performWithDelay(500, destroyScene)
     end
 end
 
