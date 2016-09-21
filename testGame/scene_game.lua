@@ -142,12 +142,12 @@ countDownText.x = display.contentWidth / 2
 countDownText.y = display.contentHeight * 0.05
 hud:insert(countDownText)
 
-hpBg = display.newRect( 0, display.contentHeight - 25, 104, 25 )
+hpBg = display.newRect( 5, display.contentHeight - 25, 104, 25 )
 hpBg.anchorX = 0
 hpBg:setFillColor( 1, 1, 1, 0.5 )
 hud:insert(hpBg)
 
-hpFg = display.newRect( hpBg.x - 2, hpBg.y, 100, 18 )
+hpFg = display.newRect( hpBg.x + 2, hpBg.y, 100, 18 )
 hpFg.anchorX = 0
 hpFg:setFillColor( 0.2, 0.85, 0.4 )
 hud:insert(hpFg)
@@ -167,7 +167,34 @@ hpWarningText.x = display.contentWidth / 2
 hpWarningText.y = display.contentHeight / 2
 hud:insert(hpWarningText)
 
+-- ANIMATION
+local sheetOptions =
+{
+    width = 128,
+    height = 128,
+    numFrames = 64
+	
+}
+local sheetExplosion = graphics.newImageSheet( "images/boom.png", sheetOptions )
+local sequencesExplosion = {
+    {
+        name = "Explode",
+        start = 1,
+        count = 64,
+        time = 800,
+        loopCount = 1,
+        loopDirection = "forward"	
+    }
+}
 
+local function animateExplode(x, y)
+    local Explosion = display.newSprite( sheetExplosion, sequencesExplosion)
+	Explosion:setSequence( "Explode" )
+    Explosion.x = x
+    Explosion.y = y
+	Explosion:play()
+    timer.performWithDelay(805, function() Explosion:removeSelf() end)
+end
 
 if(enableAccelerometer == false) then
     fireButton = display.newImage("images/fire.png")
@@ -202,12 +229,12 @@ ship.x = display.contentWidth / 2
 group:insert(ship)
 
 local function setHp( hp )
-	hpFg.width = hpBg.width * hp / 100
+	hpFg.width = (hpBg.width - 4) * hp / 100
 	hpFg:setFillColor( 100/hp, hp/100, 0 )
 end
 
 local function setBossHp( bhp )
-	bossHpFg.width = bossHpBg.width * bhp / maxBossHp
+	bossHpFg.width = (bossHpBg.width - 4) * bhp / maxBossHp
 	bossHpFg:setFillColor( 100/maxBossHp, bhp/maxBossHp, 0 )
 end
 
@@ -218,7 +245,7 @@ local function setEnergy(enrgy)
     elseif(energy >= maxEnergy) then
         energy = maxEnergy
     end
-    energyFg.width = energyBg.width * energy / 100
+    energyFg.width = (energyBg.width - 4) * energy / 100
 end
 
 hp = 100
@@ -376,12 +403,17 @@ local function onCollisionWithShip(self, event)
             event.other:removeSelf()
             scoreText.text = score
         elseif(event.other.name == "BadShip") then
+            animateExplode(event.other.x, event.other.y)
             hp = hp - 10
             setHp(hp)
+            ship:setFillColor(1,0,0)
+            timer.performWithDelay(100, function() ship:setFillColor(1) end)
             event.other:removeSelf()
         elseif(event.other.name == "BossBullet") then
             hp = hp - event.other.damage
             setHp(hp)
+            ship:setFillColor(1,0,0)
+            timer.performWithDelay(100, function() ship:setFillColor(1) end)
             event.other:removeSelf()
         end
     end
@@ -390,6 +422,7 @@ end
 local function onBossDead(bossShip)
     bossHpBg:removeSelf()
     bossHpFg:removeSelf()
+    animateExplode(bossShip.x, bossShip.y)
     inBossBattle = false
     boss.onDeath()
     bossShip:removeSelf()
@@ -402,6 +435,11 @@ local function onCollision(event)
         obj2 = event.object2
 
         if ((obj1.name == "PlayerBeam" and obj2.name == "BadShip") or (obj2.name == "PlayerBeam" and obj1 == "BadShip")) then
+            if(obj1.name == "PlayerBeam") then
+                animateExplode(obj2.x, obj2.y)
+            else
+                animateExplode(obj1.x, obj1.y)
+            end
             obj1:removeSelf()
             obj2:removeSelf()
             score = score + 10
@@ -423,6 +461,9 @@ local function onCollision(event)
             bossHealthText.x = display.contentWidth - bossHealthText.width
             if(bossShip.health <= 0) then
                 onBossDead(bossShip)
+            else
+                bossShip:setFillColor(1,0,0)
+                timer.performWithDelay(100, function() bossShip:setFillColor(1) end)
             end
             return true
         end
