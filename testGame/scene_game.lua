@@ -46,7 +46,7 @@ local shipImage
 local enableKeyboard = true
 
 local physics = require("physics")
-
+local onAllPlanetsDone
 
 function scene:create(event)
 
@@ -427,6 +427,9 @@ local function onBossDead(bossShip)
     boss.onDeath()
     bossShip:removeSelf()
     bossHealthText.text = ""
+    if(currentPlanet > 10) then
+        onAllPlanetsDone()
+    end
 end
 
 local function onCollision(event)
@@ -640,7 +643,7 @@ local function countDownToPlanet(name, timeSec)
     end
 end
 
-local function initBossBattle()
+local function initBossBattle(planetnm)
     inBossBattle = true
     boss = require("boss")
     --spawnBoss = require("boss").spawnBoss
@@ -670,7 +673,7 @@ local function spawnPlanet()
         planet = getPlanet({planetName = planetNames[currentPlanet]})
         background1:insert(planet)
 
-        initBossBattle()
+        initBossBattle(planetNames[currentPlanet])
     end
 end
 
@@ -678,8 +681,13 @@ end
 --timer.performWithDelay(2000, spawnPlanet)
 --timer.performWithDelay(30000, function() countDownToPlanet(planetNames[currentPlanet], 15) end)
 
-timer.performWithDelay(5000, spawnPlanet)
-countDownToPlanet(planetNames[currentPlanet], 5)
+timer.performWithDelay(10000, spawnPlanet)
+countDownToPlanet(planetNames[currentPlanet], 10)
+
+function onAllPlanetsDone()
+    timer.performWithDelay(10000, function() initBossBattle(planetNames[math.random(9) + 1]) end)
+    countDownToPlanet("Next Battle", 10)
+end
 
 local function onPlanetDone()
     planet:removeSelf()
@@ -689,6 +697,8 @@ local function onPlanetDone()
     if(currentPlanet < 11) then
         timer.performWithDelay(10000, spawnPlanet)
         countDownToPlanet(planetNames[currentPlanet], 10)
+    else
+        onAllPlanetsDone()
     end
     if(inBossBattle) then
         onBossDead(boss.boss)
