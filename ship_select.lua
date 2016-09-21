@@ -1,11 +1,13 @@
 local composer = require( "composer" )
 local scene = composer.newScene()
 local widget = require( "widget" )
+    local json = require("json")
+    local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png"}
 
 
 -- Function to handle button events
 local function handleShip1Event( event )
-
+    settings.ship = "images/1.png"
     if ( "ended" == event.phase ) then
         composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
 		print("ship1")
@@ -14,6 +16,7 @@ local function handleShip1Event( event )
 end
 
 local function handleShip2Event( event )
+    settings.ship = "images/2.png"
 
     if ( "ended" == event.phase ) then
         composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
@@ -22,28 +25,36 @@ local function handleShip2Event( event )
 end
 local function handleShip3Event( event )
 
+    settings.ship = "images/3.png"
     if ( "ended" == event.phase ) then
         composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
     end
 end
 local function handleShip4Event( event )
 
+    settings.ship = "images/4.png"
     if ( "ended" == event.phase ) then
         composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
     end
 end
 local function handleShip5Event( event )
 
+    settings.ship = "images/5.png"
     if ( "ended" == event.phase ) then
         composer.gotoScene("scene_menu", { effect = "crossFade", time = 333 })
     end
 end
 function scene:create( event )
-  local sceneGroup = self.view
+    local sceneGroup = self.view
   
-  params = event.params
+    params = event.params
     
-  
+    local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+    local file, errorstring = io.open(path, "r")
+    local string = file:read("*a")
+    settings = json.decode(string)
+    file:close()
+    file = nil
     
    local background = display.newImageRect(sceneGroup, "images/bship.png", 475, 713) -- display the background image object
         background.x = display.contentCenterX
@@ -113,7 +124,40 @@ function scene:show( event )
     end
 end
 
+function scene:hide(event)
+    local sceneGroup = self.view
+    
+    if event.phase == "will" then
+        local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+        local string = json.encode(settings)
+        local file, errorstring = io.open(path, "w")
+        if (file == nil) then
+            print(errorstring)
+        end
+        file:write(string)
+        file:close()
+        file = nil
+    end
+end
+
+function scene:destroy(event)
+local sceneGroup = self.view
+    
+    if event.phase == "will" then
+        local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
+        local string = json.encode(settings)
+        local file, errorstring = io.open(path, "w")
+        if (file == nil) then
+            print(errorstring)
+        end
+        file:write(string)
+        file:close()
+        file = nil
+    end
+end
 
 scene:addEventListener( "create", scene )
 scene:addEventListener( "show", scene )
+scene:addEventListener( "hide", scene )
+scene:addEventListener( "destroy", scene )
 return scene

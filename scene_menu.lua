@@ -16,7 +16,7 @@ local json = require("json")
 function scene:create( event )
 
     local sceneGroup = self.view
-    local settings = {musicOn = true, soundOn = true, accelerometerOn = true}
+    local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png"}
     
     local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
     local file, errorstring = io.open(path, "r")
@@ -46,7 +46,7 @@ function scene:create( event )
 
     
 
-    local logo = display.newImageRect(sceneGroup, "images/logo.png", 300, 150) -- create the logo image object
+    local logo = display.newImageRect(sceneGroup, "images/logo.png", 390, 150) -- create the logo image object
         logo.x = display.contentCenterX
         logo.y = 75
 
