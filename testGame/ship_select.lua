@@ -141,10 +141,10 @@ function scene:create( event )
 
 
 	local done = widget.newButton({
-        width = 100,
-        height = 32,
-		defaultFile = "images/done.png", -- the image to be used in the normal state
-        overFile = "images/done.png", -- the image to be used in the pressed state
+        width = 118,
+        height = 58,
+		defaultFile = "images/sh2.png", -- the image to be used in the normal state
+        overFile = "images/sh2.png", -- the image to be used in the pressed state
         onEvent = handleButtonEvent
     })
     done.x = display.contentCenterX 

@@ -3,39 +3,39 @@ local M = {}
 local function initBoss(planetName, group)
     if(planetName == "Mercury") then
         M.boss = display.newImage("images/EnemyShips/6.png")
-        M.boss.health = 300
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Venus") then
         M.boss = display.newImage("images/EnemyShips/11.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Earth") then
         M.boss = display.newImage("images/EnemyShips/1.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Mars") then
         M.boss = display.newImage("images/EnemyShips/2.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Jupiter") then
         M.boss = display.newImage("images/EnemyShips/3.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Saturn") then
         M.boss = display.newImage("images/EnemyShips/4.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Uranus") then
         M.boss = display.newImage("images/EnemyShips/9.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Neptune") then
         M.boss = display.newImage("images/EnemyShips/13.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Pluto") then
         M.boss = display.newImage("images/EnemyShips/88.png")
-        M.boss.health = 100
+        M.boss.health = 150
         physics.addBody(M.boss, "kinematic")
 	
     end    

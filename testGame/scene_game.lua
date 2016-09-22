@@ -29,6 +29,7 @@ local hpBg
 local hpFg
 local hpWarningOnScreen = false
 local hp
+local hpText
 local energy = 100
 local energyPerBullet = 20
 local maxEnergy = 100
@@ -152,6 +153,13 @@ hpFg.anchorX = 0
 hpFg:setFillColor( 0.2, 0.85, 0.4 )
 hud:insert(hpFg)
 
+hpText = display.newText({text = "HP", font = native.systemFontBold, fontSize = 20})
+hpText.anchorX = 0
+hpText.x = hpBg.x + 5
+hpText.y = hpBg.y --+ hpBg.height / 2 + 10
+hpText:setFillColor(0.3,0.3,0.3)
+hud:insert(hpText)
+
 energyBg = display.newRect(display.contentWidth - 105, display.contentHeight - 25, 104, 25)
 energyBg.anchorX = 0
 energyBg:setFillColor( 1, 1, 1, 0.5 )
@@ -161,6 +169,13 @@ energyFg = display.newRect( energyBg.x + 2, energyBg.y, 100, 18 )
 energyFg.anchorX = 0
 energyFg:setFillColor( 0.2, 0.4, 0.85 )
 hud:insert(energyFg)
+
+energyText = display.newText({text = "Energy", font = native.systemFontBold, fontSize = 20})
+energyText.anchorX = 0
+energyText.x = energyBg.x + 5
+energyText.y = energyBg.y --+ hpBg.height / 2 + 10
+energyText:setFillColor(0.1,0.1,0.1)
+hud:insert(energyText)
 
 hpWarningText = display.newText({text = "", font = native.systemFontBold, fontSize = 30})
 hpWarningText.x = display.contentWidth / 2
@@ -656,7 +671,7 @@ local function initBossBattle(planetnm)
 
     bossHp = boss.boss.health
 
-    bossHpBg = display.newRect( 10, 50, 104, 25 )
+    bossHpBg = display.newRect( display.contentWidth - 108, 50, 104, 25 )
     bossHpBg.anchorX = 0
     bossHpBg:setFillColor( 1, 1, 1, 0.5 )
     hud:insert(bossHpBg)
