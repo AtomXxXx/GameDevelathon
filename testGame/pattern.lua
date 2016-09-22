@@ -36,13 +36,21 @@ end
 
 function M.startPattern(params)
 
-    M.numBulletsTogether = 3
+    --[[M.numBulletsTogether = 3
     M.angleBetweenBullets = 30
     M.speedOfBullet = 300
     M.timeGapFrames = 10
     M.angle = 60
     M.rateAnglePerFrame = 0.8
-    M.maxRotation = 60
+    M.maxRotation = 60]]
+
+    M.numBulletsTogether = params.numBulletsTogether
+    M.angleBetweenBullets = params.angleBetweenBullets
+    M.speedOfBullet = params.speedOfBullet
+    M.timeGapFrames = params.timeGapFrames
+    M.angle = params.angle
+    M.rateAnglePerFrame = params.rateAnglePerFrame
+    M.maxRotation = params.maxRotation
 
     M.startPosX = params.startPosX
     M.startPosY = params.startPosY

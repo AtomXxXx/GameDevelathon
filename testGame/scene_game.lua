@@ -15,6 +15,7 @@ local laneMiddleX = laneWidth / 2
 local currentLane = 2
 local lanes = {}
 local score = 0
+local bossCount = 0
 
 local scoreText
 local bossHealthText
@@ -38,7 +39,6 @@ local bossHpBg
 local bossHpFg
 local bossHp
 local maxBossHp
-
 
 local enableAccelerometer
 local enableMusic
@@ -420,6 +420,7 @@ local function onCollisionWithShip(self, event)
 end
 
 local function onBossDead(bossShip)
+    bossCount = bossCount + 1
     bossHpBg:removeSelf()
     bossHpFg:removeSelf()
     animateExplode(bossShip.x, bossShip.y)
@@ -572,10 +573,12 @@ end
 
 local function createStars(scale, group)
     if(gameRunning) then
-        local star = getRandomStar(scale)
-        star.x = math.random(display.contentWidth)
-        star.y = -star.height / 2
-        group:insert(star)
+        if(group.numChildren < 11) then
+            local star = getRandomStar(scale)
+            star.x = math.random(display.contentWidth)
+            star.y = -star.height / 2
+            group:insert(star)
+        end
         local timeToNextStar = math.random(5000)
         if(inBossBattle) then
             timeToNextStar = math.random(20000)
@@ -647,7 +650,7 @@ local function initBossBattle(planetnm)
     inBossBattle = true
     boss = require("boss")
     --spawnBoss = require("boss").spawnBoss
-    boss.spawnBoss({planetName = "Mercury", group = enemyGroup, bulletGroup = bullets})
+    boss.spawnBoss({planetName = planetNames[currentPlanet], group = enemyGroup, bulletGroup = bullets})
     bossHealthText.text = boss.boss.health
     bossHealthText.x = display.contentWidth - bossHealthText.width
 
@@ -714,7 +717,6 @@ end
 
 local function destroyScene()
     bottomOfScreen:removeEventListener("collision")
-    ship:removeEventListener("collision")
     Runtime:removeEventListener("collision", onCollision)
 
     if(inBossBattle) then
@@ -722,7 +724,7 @@ local function destroyScene()
     end
 
     physics.stop()
-    composer.gotoScene("game_end", { effect = "crossFade", time = 333 })
+    composer.gotoScene("game_end", { effect = "crossFade", time = 333, params = {score = score, bossCount = bossCount} })
 end
 
 local function updateFrame()
@@ -743,6 +745,9 @@ local function updateFrame()
     if(hp > 100) then hp = 100 end
     if(hp <= 0) then
         gameRunning = false
+        animateExplode(ship.x, ship.y)
+        ship:setLinearVelocity(0, 0)
+        ship:removeEventListener("collision")
         if(enableAccelerometer) then
             Runtime:removeEventListener( "accelerometer", onTilt )
         end
@@ -753,7 +758,8 @@ local function updateFrame()
         else
             Runtime:removeEventListener("tap", fireBeamInvoker)
         end
-        timer.performWithDelay(500, destroyScene)
+        timer.performWithDelay(500, function() ship:removeSelf() end)
+        timer.performWithDelay(1000, destroyScene)
     end
 end
 

@@ -3,25 +3,15 @@ local scene = composer.newScene()
 local widget = require( "widget" )
 local json = require("json")
 
--- -----------------------------------------------------------------------------------------------------------------
--- All code outside of the listener functions will only be executed ONCE unless "composer.removeScene()" is called.
--- -----------------------------------------------------------------------------------------------------------------
-
--- local forward references should go here
-
--- -------------------------------------------------------------------------------
-
-
--- "scene:create()"
 function scene:create( event )
 
     local sceneGroup = self.view
-    local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png"}
+    local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png", score = 0, bossCount = 0}
     
     local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
     local file, errorstring = io.open(path, "r")
     if (not file) then
-        settings = {musicOn = true, soundOn = true, accelerometerOn = true}
+        settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png", score = 0, bossCount = 0}
         local string = json.encode(settings)
         local file, errorstring = io.open(path, "w")
         if (file == nil) then
@@ -37,9 +27,6 @@ function scene:create( event )
         file = nil
     end
 
-
-    -- Initialize the scene here.
-    -- Example: add display objects to "sceneGroup", add touch listeners, etc.
     local background = display.newImageRect(sceneGroup, "images/background.png", 475, 713) -- display the background image object
         background.x = display.contentCenterX
         background.y = display.contentCenterY  
