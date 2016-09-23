@@ -4,38 +4,47 @@ local function initBoss(planetName, group)
     if(planetName == "Mercury") then
         M.boss = display.newImage("images/EnemyShips/6.png")
         M.boss.health = 150
+        M.boss.patternNum = 1
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Venus") then
         M.boss = display.newImage("images/EnemyShips/11.png")
         M.boss.health = 150
+        M.boss.patternNum = 2
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Earth") then
         M.boss = display.newImage("images/EnemyShips/1.png")
         M.boss.health = 150
+        M.boss.patternNum = 4
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Mars") then
         M.boss = display.newImage("images/EnemyShips/2.png")
         M.boss.health = 150
+        M.boss.patternNum = math.random(5)
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Jupiter") then
         M.boss = display.newImage("images/EnemyShips/3.png")
         M.boss.health = 150
+        M.boss.patternNum = math.random(5)
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Saturn") then
         M.boss = display.newImage("images/EnemyShips/4.png")
         M.boss.health = 150
+        M.boss.patternNum = math.random(5)
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Uranus") then
         M.boss = display.newImage("images/EnemyShips/9.png")
         M.boss.health = 150
+        M.boss.patternNum = math.random(5)
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Neptune") then
         M.boss = display.newImage("images/EnemyShips/13.png")
         M.boss.health = 150
+        M.boss.patternNum = math.random(5)
         physics.addBody(M.boss, "kinematic")
 	elseif(planetName == "Pluto") then
         M.boss = display.newImage("images/EnemyShips/88.png")
         M.boss.health = 150
+        M.boss.patternNum = math.random(5)
         physics.addBody(M.boss, "kinematic")
 	
     end    
@@ -58,16 +67,16 @@ local function getPatternOptions(num, bulletGroup)
     if(num == 1) then
         options.numBulletsTogether = 10
         options.angleBetweenBullets = 13
-        options.speedOfBullet = 300
-        options.timeGapFrames = 25
+        options.speedOfBullet = 250
+        options.timeGapFrames = 28
         options.angle = 45
         options.rateAnglePerFrame = 2
         options.maxRotation = 60
     elseif(num == 2) then
         options.numBulletsTogether = 3
         options.angleBetweenBullets = 30
-        options.speedOfBullet = 300
-        options.timeGapFrames = 10
+        options.speedOfBullet = 250
+        options.timeGapFrames = 13
         options.angle = 60
         options.rateAnglePerFrame = 0.8
         options.maxRotation = 60
@@ -86,8 +95,8 @@ local function getPatternOptions(num, bulletGroup)
     elseif(num == 4) then
         options.numBulletsTogether = 20
         options.angleBetweenBullets = 18
-        options.speedOfBullet = 200
-        options.timeGapFrames = 16
+        options.speedOfBullet = 180
+        options.timeGapFrames = 18
         options.angle = 0
         options.rateAnglePerFrame = 0.5
         options.maxRotation = 360
@@ -124,7 +133,7 @@ local function fire(bulletGroup)
         M.boss.shooting = true
         M.boss.pattern = require("pattern")
         --M.boss.pattern.startPattern(getPatternOptions(4, bulletGroup))
-        M.boss.pattern.startPattern(getPatternOptions(math.random(5), bulletGroup))
+        M.boss.pattern.startPattern(getPatternOptions(M.boss.patternNum, bulletGroup))
     end
 end
 

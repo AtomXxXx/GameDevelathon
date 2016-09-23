@@ -37,8 +37,8 @@ function scene:create( event )
         lo.y = display.contentCenterY-200
     -- Create the widget
     local doneButton = widget.newButton({
-        width = 100,
-        height = 32,
+        width = 230,
+        height = 50,
 		defaultFile = "images/menu.png", -- the image to be used in the normal state
         overFile = "images/menu.png", -- the image to be used in the pressed state
         onEvent = handleButtonEvent

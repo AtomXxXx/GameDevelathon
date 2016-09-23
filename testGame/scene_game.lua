@@ -46,6 +46,7 @@ local enableMusic
 local shipImage
 local enableKeyboard = true
 
+local explosionBossSoundHandle = audio.loadStream( "explosionboss.wav" )
 local physics = require("physics")
 local onAllPlanetsDone
 
@@ -62,6 +63,7 @@ file = nil
 
 enableAccelerometer = settings.accelerometerOn
 enableMusic = settings.musicOn
+enableSound = settings.soundOn
 shipImage = settings.ship
 
 container = display.newContainer(display.contentWidth, display.contentHeight)
@@ -304,7 +306,7 @@ local function boundShipToScreen(speed)
 end
 
 local function onTilt(event)
-    local speed = event.xRaw / 0.3
+    local speed = event.xRaw / 0.2
 
     if(speed > 1) then
         speed = 1
@@ -359,10 +361,14 @@ local function touchHandler( event )
 
                 if (event.x <= display.contentWidth / 2) then
                     Runtime:removeEventListener( "enterFrame", moveShipLeft )
+                    if(not(ship == nil)) then
                     ship:setLinearVelocity(0, 0)
+                    end
                 elseif(event.x > display.contentWidth / 2) then
                     Runtime:removeEventListener( "enterFrame", moveShipRight )
+                     if(not(ship == nil)) then
                     ship:setLinearVelocity(0, 0)
+                    end
                 end
 
                 display.getCurrentStage():setFocus( nil )
@@ -439,6 +445,9 @@ local function onBossDead(bossShip)
     bossHpBg:removeSelf()
     bossHpFg:removeSelf()
     animateExplode(bossShip.x, bossShip.y)
+    if(enableSound) then
+        audio.play(explosionBossSoundHandle, {channel = 2, loop = 1})
+    end
     inBossBattle = false
     boss.onDeath()
     bossShip:removeSelf()

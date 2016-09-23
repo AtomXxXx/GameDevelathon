@@ -2,12 +2,13 @@ local composer = require( "composer" )
 local scene = composer.newScene()
 local widget = require( "widget" )
 local json = require("json")
+local menuMusic
 
 function scene:create( event )
 
     local sceneGroup = self.view
     local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png", score = 0, bossCount = 0}
-    
+
     local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
     local file, errorstring = io.open(path, "r")
     if (not file) then
@@ -30,19 +31,36 @@ function scene:create( event )
     local background = display.newImageRect(sceneGroup, "images/background.png", 475, 713) -- display the background image object
         background.x = display.contentCenterX
         background.y = display.contentCenterY  
-
     
+    --[[if(settings.musicOn) then
+        local backgroundMusic = audio.loadStream( "menumusic.mp3" )
+        menuMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
+    end]]
 
-    local logo = display.newImageRect(sceneGroup, "images/logo.png", 300, 150) -- create the logo image object
+    local logo = display.newImage("images/logo.png") -- create the logo image object
         logo.x = display.contentCenterX
         logo.y = 75
+        logo:scale(0.5, 0.5)
+    sceneGroup:insert(logo)
 
-	local function handleSettingsButtonEvent( event )
+	
+    
+    
+    local function handleSettingsButtonEvent( event )
 
     if ( "ended" == event.phase ) then
         composer.gotoScene("game_settings", { effect = "crossFade", time = 333 })
     end
 end
+
+local function handlecreditsButtonEvent( event )
+
+    if ( "ended" == event.phase ) then
+        composer.gotoScene("scene_credits", { effect = "crossFade", time = 333 })
+    end
+end    
+    
+
 local function handleChooseShipButtonEvent( event )
 
     if ( "ended" == event.phase ) then
@@ -67,22 +85,40 @@ end
         onEvent = handleSettingsButtonEvent
     })
     settingsButton.x = display.contentCenterX
-    settingsButton.y = display.contentCenterY +100
+    settingsButton.y = display.contentCenterY +50
     sceneGroup:insert( settingsButton )
+
+
+	local creditsButton = widget.newButton({
+        width = 210,
+        height = 90,
+		defaultFile = "images/btn-blank.png", -- the image to be used in the normal state
+        overFile = "images/btn-blank-over.png", -- the image to be used in the pressed state
+		label = "Credits", -- the text to display on the button
+        font = system.defaultFontBold, -- the font name to be used
+        fontSize = 25, -- the size of the font
+        labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0, 0.5 } }, -- the color of the label and the color when pressed
+        onEvent = handlecreditsButtonEvent
+    })
+    creditsButton.x = display.contentCenterX
+    creditsButton.y = display.contentCenterY +250
+    sceneGroup:insert( creditsButton )
+
+
 
     local btn_startPlaying = widget.newButton {
         width = 220, -- this defines the width of the button
         height = 100, -- this defines the height of the button 
         defaultFile = "images/btn-blank.png", -- the image to be used in the normal state
         overFile = "images/btn-blank-over.png", -- the image to be used in the pressed state
-        label = "Play The Demo?", -- the text to display on the button
+        label = "Play", -- the text to display on the button
         font = system.defaultFontBold, -- the font name to be used
         fontSize = 25, -- the size of the font
         labelColor = { default={ 0, 0, 0 }, over={ 0, 0, 0, 0.5 } }, -- the color of the label and the color when pressed
         onEvent = handleButtonEvent -- the name of the function to be called when the button is pressed
     }
     btn_startPlaying.x = display.contentCenterX -- position the button on the center of x axis
-    btn_startPlaying.y = display.contentCenterY -- position the button on the center of y axis
+    btn_startPlaying.y = display.contentCenterY-50 -- position the button on the center of y axis
     sceneGroup:insert(btn_startPlaying) -- insert button into sceneGroup for scene management
 
 	local chooseShipButton = widget.newButton({
@@ -97,7 +133,7 @@ end
         onEvent = handleChooseShipButtonEvent
     })
     chooseShipButton.x = display.contentCenterX
-    chooseShipButton.y = display.contentCenterY +200
+    chooseShipButton.y = display.contentCenterY +150
     sceneGroup:insert( chooseShipButton )
 
 end
