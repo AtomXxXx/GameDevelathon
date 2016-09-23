@@ -3,11 +3,12 @@ local scene = composer.newScene()
 local widget = require( "widget" )
 local json = require("json")
 local menuMusic
+local settings
 
 function scene:create( event )
 
     local sceneGroup = self.view
-    local settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png", score = 0, bossCount = 0}
+    settings = {musicOn = true, soundOn = true, accelerometerOn = true, ship = "images/1.png", score = 0, bossCount = 0}
 
     local path = system.pathForFile("CoronaGameSettings.txt", system.DocumentsDirectory)
     local file, errorstring = io.open(path, "r")
@@ -27,7 +28,9 @@ function scene:create( event )
         file:close()
         file = nil
     end
-
+    if(settings.musicOn == false) then
+        audio.stop(1)
+    end
     local background = display.newImageRect(sceneGroup, "images/background.png", 475, 713) -- display the background image object
         background.x = display.contentCenterX
         background.y = display.contentCenterY  
@@ -147,6 +150,9 @@ function scene:show( event )
     local phase = event.phase
 
     if ( phase == "will" ) then
+    if(settings.musicOn == false) then
+        audio.stop(1)
+    end
         -- Called when the scene is still off screen (but is about to come on screen).
     elseif ( phase == "did" ) then
         -- Called when the scene is now on screen.

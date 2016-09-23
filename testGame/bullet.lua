@@ -18,11 +18,16 @@ local function setVelocity(angle, speed)
     M.bullet:setLinearVelocity(newVel.x, newVel.y)
 end
 
-local function updateBullet()
+ function updateBullet()
     if(M.bullet.x < -100 or M.bullet.x > display.contentWidth + 100 
     or M.bullet.y < -100 or M.bullet.y > display.contentHeight + 100) then
         M.bullet:removeSelf()
+        Runtime:removeEventListener("enterFrame", updateBullet)
     end
+end
+
+function M.destroyBullet()
+    M.bullet:removeSelf()
 end
 
 function M.spawnBullet(params)
@@ -50,8 +55,12 @@ function M.spawnBullet(params)
     else
         physics.addBody(M.bullet, "dynamic", {isSensor = true})
     end
-    M.bullet:addEventListener("enterFrame", updateBullet)
+    --updateBullet is unpredictable and causing errors
+    --Runtime:addEventListener("enterFrame", updateBullet)
     
+    --this will do for now since there are no super slow bullets
+    timer:performWithDelay(50, function() M.destroyBullet() end)
+
     setVelocity(params.angle, params.speed)
 end
 

@@ -46,6 +46,9 @@ local enableMusic
 local shipImage
 local enableKeyboard = true
 
+local backgroundMusicChannel
+local backgroundMusicStream
+
 local explosionBossSoundHandle = audio.loadStream( "explosionboss.wav" )
 local physics = require("physics")
 local onAllPlanetsDone
@@ -184,6 +187,35 @@ hpWarningText.x = display.contentWidth / 2
 hpWarningText.y = display.contentHeight / 2
 hud:insert(hpWarningText)
 
+-- PHYSICS
+
+--physics.setDrawMode("hybrid")
+physics.setPositionIterations(256)
+physics.setVelocityIterations(256)
+physics.start()
+physics.setGravity(0, 0)
+
+local leftBorder = display.newRect(-50, display.contentHeight / 2, 50, display.contentHeight + 100)
+leftBorder.name = "LeftBorder"
+physics.addBody(leftBorder, "kinematic", {isSensor = true})
+bullets:insert(leftBorder)
+
+local rightBorder = display.newRect(display.contentWidth + 50, display.contentHeight / 2, 50, display.contentHeight + 100)
+rightBorder.name = "RightBorder"
+physics.addBody(rightBorder, "kinematic", {isSensor = true})
+bullets:insert(rightBorder)
+
+local topBorder = display.newRect(display.contentWidth / 2, -50, display.contentWidth + 100, 50)
+topBorder.name = "TopBorder"
+physics.addBody(topBorder, "kinematic", {isSensor = true})
+bullets:insert(topBorder)
+
+local bottomBorder = display.newRect(display.contentWidth / 2, display.contentHeight + 100, display.contentWidth + 100, 50)
+bottomBorder.name = "BottomBorder"
+physics.addBody(bottomBorder, "kinematic", {isSensor = true})
+bullets:insert(bottomBorder)
+
+
 -- ANIMATION
 local sheetOptions =
 {
@@ -223,8 +255,10 @@ end
 
 -- CREATING ALL THE OBJECTS ON SCREEN
 if (enableMusic) then
-    local backgroundMusic = audio.loadStream( "ingame.mp3" )
-    local backgroundMusic = audio.play( backgroundMusic, { channel=1, loops=-1} )
+    backgroundMusicStream = audio.loadStream( "ingame.mp3" )
+    backgroundMusicChannel = audio.play( backgroundMusicStream, { channel=1, loops=-1} )
+else
+    audio.stop(1)
 end
 
 starbg = display.newImage("images/starsbackground.png")
@@ -409,13 +443,6 @@ bottomOfScreen.anchorY = 0
 bottomOfScreen.name = "BottomOfScreen"
 group:insert(bottomOfScreen)
 
--- PHYSICS
-
---physics.setDrawMode("hybrid")
-physics.setPositionIterations(256)
-physics.setVelocityIterations(256)
-physics.start()
-physics.setGravity(0, 0)
 
 local function onCollisionWithShip(self, event)
     if (event.phase == "began") then
@@ -494,6 +521,16 @@ local function onCollision(event)
                 timer.performWithDelay(100, function() bossShip:setFillColor(1) end)
             end
             return true
+        elseif(obj1.name == "BossBullet" or obj2.name == "PlayerBeam" or obj1.name == "PlayerBeam" or obj2.name == "BossBullet") then
+            local bul = obj1
+            local wall = obj2
+            if(obj2.name == "BossBullet" or obj2.name == "PlayerBeam") then
+                bul = obj2
+                wall = obj1
+            end
+            if(wall.name == "LeftBorder" or wall.name == "RightBorder" or wall.name == "TopBorder" or wall.name == "BottomBorder") then
+                bul:removeSelf()
+            end
         end
     end
 end
